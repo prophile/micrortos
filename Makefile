@@ -1,14 +1,22 @@
 CC=clang
 CFLAGS=-Os -fno-unwind-tables -fno-stack-protector -fomit-frame-pointer -fno-rtti -fno-exceptions -Wall -Werror -flto
 LDFLAGS=-Os -Wall -Werror -flto
+SOURCES=main.c lock.c rtos.c rtos_yield.c rtos_sched.c syscalls_data.c syscalls_exit.c syscalls_futex.c syscalls_sleep.c sys_auto.c
 
-rtos: main.o lock.o rtos.o rtos_yield.o rtos_sched.o syscalls_data.o syscalls_exit.o syscalls_futex.o syscalls_sleep.o sys_auto.o
+all: rtos
+
+Dependencies.mk: $(SOURCES)
+	$(CC) -MM $^ > $@
+
+include Dependencies.mk
+
+rtos: $(SOURCES:.c=.o)
 	$(CC) $(LDFLAGS) -o $@ $^
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 clean:
-	rm -f rtos *.o
+	rm -f rtos *.o Dependencies.mk
 
-.PHONY: clean
+.PHONY: clean rtos
