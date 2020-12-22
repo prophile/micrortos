@@ -21,12 +21,11 @@ extern struct task_status* g_statuses;
 
 static const int TASK_IDLE = -1;
 
-extern SYS_context_t g_exitcontext;
 extern SYS_context_t g_yieldcontext;
 extern struct task_status* volatile g_running;
 
 void _yield(void);
-void _sched(struct task_status* first_task) __attribute__((noreturn));
+int _sched(struct task_status* first_task);
 struct task_status* _gettask(void);
 
 #define ITEROTHERS(var, than_task) for (struct task_status* var = (than_task)->next; var != (than_task); var = var->next)

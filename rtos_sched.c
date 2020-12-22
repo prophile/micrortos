@@ -69,7 +69,7 @@ _next_task(struct task_status* prev, CLK_T* wait, int* exit_code)
     return NULL;
 }
 
-void _sched(struct task_status* first_task)
+int _sched(struct task_status* first_task)
 {
     // Now the weird bit; from this SYS_context_get onwards this code is entered
     // _every time_ a yield occurs. NB: interrupts are always disabled at this
@@ -86,10 +86,10 @@ done_idle:
     } else {
         next = first_task;
     }
+
     if (UNLIKELY(next == NULL)) {
         if (UNLIKELY(exit_code)) {
-            SYS_context_set(&g_exitcontext, (void*)(ptrdiff_t)exit_code);
-            __builtin_unreachable();
+            return exit_code;
         }
         SYS_intr_enable();
         CLK_IDLE(wait);

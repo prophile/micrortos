@@ -8,7 +8,6 @@
 
 struct task_status* g_statuses;
 
-SYS_context_t g_exitcontext;
 SYS_context_t g_yieldcontext;
 struct task_status* volatile g_running;
 
@@ -62,11 +61,9 @@ int K_exec(const struct task_def* tasks)
     statuses_array[ntasks - 1].next = &(statuses_array[0]);
 
     g_running = NULL;
-    void* status = SYS_context_get(&g_exitcontext);
-    if (status == NULL) {
-        _sched(&(statuses_array[0]));
-    }
+    int status = _sched(&(statuses_array[0]));
 
     SYS_intr_enable();
-    return (int)(ptrdiff_t)status;
+
+    return status;
 }
