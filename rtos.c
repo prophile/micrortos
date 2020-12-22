@@ -6,7 +6,6 @@
 
 #include "rtos_impl.h"
 
-int g_ntasks;
 struct task_status* g_statuses;
 
 SYS_context_t g_exitcontext;
@@ -41,7 +40,6 @@ int K_exec(const struct task_def* tasks)
         return K_EXITALL;
     }
     SYS_intr_disable();
-    g_ntasks = ntasks;
     struct task_status statuses_array[ntasks];
     g_statuses = statuses_array;
     for (int n = 0; n < ntasks; ++n) {
