@@ -53,23 +53,25 @@ _next_task(int prev, CLK_T* wait)
     }
 }
 
+
+
 void _sched(void)
 {
     // Now the weird bit; from this SYS_context_get onwards this code is entered
     // _every time_ a yield occurs. NB: interrupts are always disabled at this
     // point.
-done_idle:
-    SYS_context_get(&g_yieldcontext);
-
+    struct task_status* running;
     CLK_T wait;
-    struct task_status* running = g_running;
-    int running_tid;
+    int running_tid, next;
+done_idle:
+    running = (struct task_status*)SYS_context_get(&g_yieldcontext);
+
     if (running) {
         running_tid = running->tid;
     } else {
         running_tid = TASK_IDLE;
     }
-    int next = _next_task(running_tid, &wait);
+    next = _next_task(running_tid, &wait);
     if (UNLIKELY(next == TASK_IDLE)) {
         SYS_intr_enable();
         CLK_IDLE(wait);
