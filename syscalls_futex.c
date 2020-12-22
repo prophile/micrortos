@@ -46,10 +46,10 @@ void K_wake_one(volatile int* address)
 {
     SYS_intr_disable();
     bool did_wake = false;
-    for (int i = 0; i < g_ntasks; ++i) {
-        if (g_statuses[i].futex == address) {
-            g_statuses[i].futex = NULL;
-            g_statuses[i].run_after = CLK_ZERO;
+    ITEROTHERS(task, _gettask()) {
+        if (task->futex == address) {
+            task->futex = NULL;
+            task->run_after = CLK_ZERO;
             did_wake = true;
             break;
         }
@@ -63,10 +63,10 @@ void K_wake_all(volatile int* address)
 {
     SYS_intr_disable();
     bool did_wake = false;
-    for (int i = 0; i < g_ntasks; ++i) {
-        if (g_statuses[i].futex == address) {
-            g_statuses[i].futex = NULL;
-            g_statuses[i].run_after = CLK_ZERO;
+    ITEROTHERS(task, _gettask()) {
+        if (task->futex == address) {
+            task->futex = NULL;
+            task->run_after = CLK_ZERO;
             did_wake = true;
         }
     }

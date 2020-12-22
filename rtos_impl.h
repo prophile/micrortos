@@ -30,4 +30,6 @@ void _yield(void);
 void _sched(void) __attribute__((noreturn));
 struct task_status* _gettask(void);
 
+#define ITEROTHERS(var, than_task) for (struct task_status* var = (than_task)->next; var != (than_task); var = var->next)
+
 #endif
