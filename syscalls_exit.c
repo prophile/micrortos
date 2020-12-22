@@ -11,8 +11,10 @@ void K_exit(void)
 void K_exitall(void)
 {
     SYS_intr_disable();
-    for (int i = 0; i < g_ntasks; ++i) {
-        g_statuses[i].exited = true;
+    struct task_status* status = _gettask();
+    status->exited = true;
+    ITEROTHERS(task, status) {
+        task->exited = true;
     }
     _yield();
     __builtin_unreachable();
