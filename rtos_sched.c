@@ -11,12 +11,17 @@ _next_after(int prev)
 }
 
 static struct task_status*
-_next_task(int prev, CLK_T* wait, int* exit_code)
+_next_task(struct task_status* prev, CLK_T* wait, int* exit_code)
 {
     CLK_T current_time = CLK_CLOCK();
     CLK_T earliest_until = CLK_ZERO;
     bool any_blocked = false;
-    int first_considered = _next_after(prev);
+    int first_considered;
+    if (prev != NULL) {
+        first_considered = _next_after(prev->tid);
+    } else {
+        first_considered = 0;
+    }
     int candidate = first_considered;
     do {
         struct task_status* status = &(g_statuses[candidate]);
@@ -67,16 +72,11 @@ void _sched(void)
     struct task_status* running;
     struct task_status* next;
     CLK_T wait;
-    int running_tid, exit_code;
+    int exit_code;
 done_idle:
     running = (struct task_status*)SYS_context_get(&g_yieldcontext);
 
-    if (running) {
-        running_tid = running->tid;
-    } else {
-        running_tid = TASK_IDLE;
-    }
-    next = _next_task(running_tid, &wait, &exit_code);
+    next = _next_task(running, &wait, &exit_code);
     if (UNLIKELY(next == NULL)) {
         if (UNLIKELY(exit_code)) {
             SYS_context_set(&g_exitcontext, (void*)(ptrdiff_t)exit_code);
