@@ -79,7 +79,7 @@ int _sched(struct task_status* first_task)
     CLK_T wait;
     int exit_code;
 done_idle:
-    running = (struct task_status*)SYS_context_get(&g_yieldcontext);
+    running = (struct task_status*)SYS_context_get(&g_kernel.yieldcontext);
 
     if (running) {
         next = _next_task(running, &wait, &exit_code);
@@ -96,7 +96,7 @@ done_idle:
         SYS_intr_disable();
         goto done_idle;
     } else {
-        g_running = next;
+        g_kernel.running = next;
         next->run_after = CLK_ZERO;
         SYS_context_set(&(next->ctx), NULL);
         __builtin_unreachable();

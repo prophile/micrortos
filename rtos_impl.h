@@ -19,8 +19,12 @@ struct task_status {
 
 static const int TASK_IDLE = -1;
 
-extern SYS_context_t g_yieldcontext;
-extern struct task_status* volatile g_running;
+struct kernel {
+    SYS_context_t yieldcontext;
+    struct task_status* volatile running;
+};
+
+extern struct kernel g_kernel;
 
 void _yield(void);
 int _sched(struct task_status* first_task);

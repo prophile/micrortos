@@ -6,8 +6,7 @@
 
 #include "rtos_impl.h"
 
-SYS_context_t g_yieldcontext;
-struct task_status* volatile g_running;
+struct kernel g_kernel;
 
 static void
 exectask(void* arg)
@@ -24,7 +23,7 @@ exectask(void* arg)
 
 struct task_status* _gettask(void)
 {
-    return g_running;
+    return g_kernel.running;
 }
 
 int K_exec(const struct task_def* tasks)
@@ -57,7 +56,7 @@ int K_exec(const struct task_def* tasks)
     }
     statuses[ntasks - 1].next = &(statuses[0]);
 
-    g_running = NULL;
+    g_kernel.running = NULL;
     int status = _sched(&(statuses[0]));
 
     SYS_intr_enable();
