@@ -26,6 +26,11 @@ exectask(void* arg)
     __builtin_unreachable();
 }
 
+struct task_status* _gettask(void)
+{
+    return &(g_statuses[g_running]);
+}
+
 int K_exec(const struct task_def* tasks)
 {
     int ntasks = 0;

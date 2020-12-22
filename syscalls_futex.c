@@ -14,7 +14,7 @@ _wait(volatile int* address, int value, CLK_T timeout)
     if (loaded != value) {
         ret = -1;
     } else {
-        struct task_status* status = &(g_statuses[g_running]);
+        struct task_status* status = _gettask();
         status->futex = address;
         if (CLK_NONZERO(timeout)) {
             CLK_ADD(base, timeout);

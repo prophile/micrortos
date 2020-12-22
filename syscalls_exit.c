@@ -3,7 +3,7 @@
 void K_exit(void)
 {
     SYS_intr_disable();
-    g_statuses[g_running].exited = true;
+    _gettask()->exited = true;
     _yield();
     __builtin_unreachable();
 }

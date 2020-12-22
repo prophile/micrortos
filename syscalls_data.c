@@ -2,5 +2,5 @@
 
 int K_gettid(void)
 {
-    return g_running;
+    return _gettask()->tid;
 }

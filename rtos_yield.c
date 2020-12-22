@@ -4,7 +4,8 @@ void _yield(void)
 {
     // Call with interrupts disabled, and do a swapcontext
     volatile ptrdiff_t has_swapped = 0;
-    SYS_context_get(&(g_statuses[g_running].ctx));
+    struct task_status* status = _gettask();
+    SYS_context_get(&(status->ctx));
     if (has_swapped) {
         return;
     }

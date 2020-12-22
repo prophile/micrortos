@@ -27,5 +27,6 @@ extern volatile int g_running;
 
 void _yield(void);
 void _sched(void) __attribute__((noreturn));
+struct task_status* _gettask(void);
 
 #endif
