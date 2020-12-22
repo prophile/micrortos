@@ -10,7 +10,7 @@ _next_after(int prev)
     }
 }
 
-static int
+static struct task_status*
 _next_task(int prev, CLK_T* wait, int* exit_code)
 {
     CLK_T current_time = CLK_CLOCK();
@@ -29,12 +29,12 @@ _next_task(int prev, CLK_T* wait, int* exit_code)
 
             if (CLK_AFTER(current_time, status->run_after)) {
                 // Run after says to run this immediately
-                return candidate;
+                return status;
             }
         } else {
             // No "run after": live task, run it if not blocked on a futex
             if (!(status->futex)) {
-                return candidate;
+                return status;
             }
         }
 
@@ -51,7 +51,7 @@ _next_task(int prev, CLK_T* wait, int* exit_code)
         *exit_code = 0;
         *wait = difference;
     }
-    return TASK_IDLE;
+    return NULL;
 }
 
 void _sched(void)
@@ -60,8 +60,9 @@ void _sched(void)
     // _every time_ a yield occurs. NB: interrupts are always disabled at this
     // point.
     struct task_status* running;
+    struct task_status* next;
     CLK_T wait;
-    int running_tid, next, exit_code;
+    int running_tid, exit_code;
 done_idle:
     running = (struct task_status*)SYS_context_get(&g_yieldcontext);
 
@@ -71,7 +72,7 @@ done_idle:
         running_tid = TASK_IDLE;
     }
     next = _next_task(running_tid, &wait, &exit_code);
-    if (UNLIKELY(next == TASK_IDLE)) {
+    if (UNLIKELY(next == NULL)) {
         if (UNLIKELY(exit_code)) {
             SYS_context_set(&g_exitcontext, (void*)(ptrdiff_t)exit_code);
             __builtin_unreachable();
@@ -81,10 +82,9 @@ done_idle:
         SYS_intr_disable();
         goto done_idle;
     } else {
-        struct task_status* next_status = &(g_statuses[next]);
-        g_running = next_status;
-        next_status->run_after = CLK_ZERO;
-        SYS_context_set(&(next_status->ctx), NULL);
+        g_running = next;
+        next->run_after = CLK_ZERO;
+        SYS_context_set(&(next->ctx), NULL);
         __builtin_unreachable();
     }
 }
