@@ -11,7 +11,6 @@ struct task_def {
     void* stack;
     size_t stacksize;
 };
-extern const struct task_def task_definitions[];
 
 typedef uint32_t milliseconds_t;
 
@@ -25,7 +24,7 @@ void K_exit(void);
 void K_exitall(void);
 void K_sleep(milliseconds_t interval);
 
-int K_exec(void);
+int K_exec(const struct task_def* tasks);
 static const int K_EXITALL = -2;
 static const int K_DEADLOCK = -3;
 static const int K_UNKNOWN = -4;

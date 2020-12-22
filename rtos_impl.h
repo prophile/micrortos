@@ -9,6 +9,7 @@ struct task_status {
     CLK_T run_after;
     bool exited;
     SYS_context_t ctx;
+    const struct task_def* definition;
 };
 
 #define LIKELY(x) __builtin_expect((x), true)

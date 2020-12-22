@@ -17,19 +17,20 @@ static void
 exectask(void* arg)
 {
     SYS_intr_enable();
-    int tid = (int)(ptrdiff_t)arg;
-    task_definitions[tid].execute(task_definitions[tid].argument);
-    g_statuses[tid].exited = true;
+    struct task_status* status = (struct task_status*)arg;
+    const struct task_def* def = status->definition;
+    def->execute(def->argument);
+    status->exited = true;
     SYS_intr_disable();
     _yield();
     __builtin_unreachable();
 }
 
-int K_exec(void)
+int K_exec(const struct task_def* tasks)
 {
     SYS_intr_disable();
     int ntasks = 0;
-    for (int n = 0; task_definitions[n].execute; ++n) {
+    for (int n = 0; tasks[n].execute; ++n) {
         ++ntasks;
     }
     g_ntasks = ntasks;
@@ -39,11 +40,12 @@ int K_exec(void)
         SYS_context_init(&(statuses_array[n].ctx),
             &exectask,
             (void*)(ptrdiff_t)n,
-            task_definitions[n].stack,
-            task_definitions[n].stacksize);
+            tasks[n].stack,
+            tasks[n].stacksize);
         statuses_array[n].futex = NULL;
         statuses_array[n].run_after = CLK_ZERO;
         statuses_array[n].exited = false;
+        statuses_array[n].definition = &(tasks[n]);
     }
 
     g_running = TASK_IDLE;

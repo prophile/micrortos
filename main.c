@@ -34,7 +34,7 @@ task_1(void* arg)
 static char stack1[8192];
 static char stack2[8192];
 
-const struct task_def task_definitions[] = {
+static const struct task_def task_definitions[] = {
     { .execute = &task_0,
         .argument = NULL,
         .stack = stack1,
@@ -49,7 +49,7 @@ const struct task_def task_definitions[] = {
 int main()
 {
     puts("Starting");
-    int status = K_exec();
+    int status = K_exec(task_definitions);
     printf("Done, status = %d\n", status);
     return 0;
 }
