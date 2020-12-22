@@ -31,8 +31,18 @@ task_1(void* arg)
     lock_unlock(&the_other_lock);
 }
 
+static void
+task_2(void* arg)
+{
+    for (int i = 0; i < 10; ++i) {
+        printf("Task 2: %d\n", i);
+        K_sleep(250);
+    }
+}
+
 static char stack1[8192];
 static char stack2[8192];
+static char stack3[8192];
 
 static const struct task_def task_definitions[] = {
     { .execute = &task_0,
@@ -43,6 +53,10 @@ static const struct task_def task_definitions[] = {
         .argument = NULL,
         .stack = stack2,
         .stacksize = sizeof(stack2) },
+    { .execute = &task_2,
+        .argument = NULL,
+        .stack = stack3,
+        .stacksize = sizeof(stack3) },
     { .execute = NULL, .argument = NULL, .stack = NULL, .stacksize = 0 }
 };
 
