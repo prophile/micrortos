@@ -17,8 +17,6 @@ struct task_status {
 #define LIKELY(x) __builtin_expect((x), true)
 #define UNLIKELY(x) __builtin_expect((x), false)
 
-static const int TASK_IDLE = -1;
-
 struct kernel {
     SYS_context_t yieldcontext;
     struct task_status* volatile running;
