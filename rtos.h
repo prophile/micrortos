@@ -26,5 +26,8 @@ void K_exitall(void);
 void K_sleep(milliseconds_t interval);
 
 int K_exec(void);
+static const int K_EXITALL = -2;
+static const int K_DEADLOCK = -3;
+static const int K_UNKNOWN = -4;
 
 #endif

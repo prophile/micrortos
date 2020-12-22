@@ -2,7 +2,7 @@ CC=clang
 CFLAGS=-Os -fno-unwind-tables -fno-stack-protector -fomit-frame-pointer -fno-rtti -fno-exceptions -Wall -Werror -flto
 LDFLAGS=-Os -Wall -Werror -flto
 
-rtos: main.o rtos.o
+rtos: main.o rtos.o lock.o
 	$(CC) $(LDFLAGS) -o $@ $^
 
 %.o: %.c

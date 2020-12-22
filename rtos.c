@@ -22,9 +22,6 @@ static int g_ntasks;
 static struct task_status* g_statuses;
 
 static const int TASK_IDLE = -1;
-const int K_EXITALL = -2;
-const int K_DEADLOCK = -3;
-const int K_UNKNOWN = -4;
 
 static SYS_context_t g_exitcontext;
 static SYS_context_t g_yieldcontext;

@@ -18,7 +18,7 @@ extern void SYS_context_get(SYS_context_t*);
 extern void SYS_context_set(SYS_context_t*) __attribute__((noreturn));
 extern void _SYS_context_bootstrap();
 
-void SYS_context_init(SYS_context_t* ctx, void (*callable)(void*), void* arg, void* stack, size_t stacksize)
+static void SYS_context_init(SYS_context_t* ctx, void (*callable)(void*), void* arg, void* stack, size_t stacksize)
 {
     ctx->ip = (uint64_t)&_SYS_context_bootstrap;
     ctx->rbx = (uint64_t)callable;
