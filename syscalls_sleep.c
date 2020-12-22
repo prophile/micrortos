@@ -1,12 +1,14 @@
 #include "rtos_impl.h"
 
-void K_yield(void) {
+void K_yield(void)
+{
     SYS_intr_disable();
     _yield();
     SYS_intr_enable();
 }
 
-void K_sleep(milliseconds_t interval) {
+void K_sleep(milliseconds_t interval)
+{
     SYS_intr_disable();
     CLK_T base = CLK_CLOCK();
     CLK_ADD(base, CLK_FROMMS(interval));

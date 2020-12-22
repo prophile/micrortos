@@ -1,8 +1,8 @@
 #include "rtos.h"
 
 #include <stdbool.h>
-#include <stdint.h>
 #include <stddef.h>
+#include <stdint.h>
 
 #include "rtos_impl.h"
 
@@ -13,7 +13,9 @@ SYS_context_t g_exitcontext;
 SYS_context_t g_yieldcontext;
 volatile int g_running;
 
-static void exectask(void* arg) {
+static void
+exectask(void* arg)
+{
     SYS_intr_enable();
     int tid = (int)(ptrdiff_t)arg;
     task_definitions[tid].execute(task_definitions[tid].argument);
@@ -23,7 +25,8 @@ static void exectask(void* arg) {
     __builtin_unreachable();
 }
 
-int K_exec(void) {
+int K_exec(void)
+{
     SYS_intr_disable();
     int ntasks = 0;
     for (int n = 0; task_definitions[n].execute; ++n) {
@@ -33,13 +36,11 @@ int K_exec(void) {
     struct task_status statuses_array[ntasks];
     g_statuses = statuses_array;
     for (int n = 0; n < ntasks; ++n) {
-        SYS_context_init(
-            &(statuses_array[n].ctx),
+        SYS_context_init(&(statuses_array[n].ctx),
             &exectask,
             (void*)(ptrdiff_t)n,
             task_definitions[n].stack,
-            task_definitions[n].stacksize
-        );
+            task_definitions[n].stacksize);
         statuses_array[n].futex = NULL;
         statuses_array[n].run_after = CLK_ZERO;
         statuses_array[n].exited = false;

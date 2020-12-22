@@ -12,10 +12,17 @@ typedef volatile struct _SYS_context_x86_64 {
     uint32_t ebx;
 } SYS_context_t;
 
-extern void SYS_context_get(SYS_context_t*);
-extern void SYS_context_set(SYS_context_t*) __attribute__((noreturn));
-extern void _SYS_context_bootstrap();
+extern void
+SYS_context_get(SYS_context_t*);
+extern void
+SYS_context_set(SYS_context_t*) __attribute__((noreturn));
+extern void
+_SYS_context_bootstrap();
 
-void SYS_context_init(SYS_context_t* ctx, void (*callable)(void*), void* arg, void* stack, size_t stacksize);
+void SYS_context_init(SYS_context_t* ctx,
+    void (*callable)(void*),
+    void* arg,
+    void* stack,
+    size_t stacksize);
 
 #endif

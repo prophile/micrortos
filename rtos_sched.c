@@ -1,6 +1,8 @@
 #include "rtos_impl.h"
 
-static int _next_after(int prev) {
+static int
+_next_after(int prev)
+{
     if (prev == g_ntasks - 1 || prev < 0) {
         return 0;
     } else {
@@ -8,7 +10,9 @@ static int _next_after(int prev) {
     }
 }
 
-static int _next_task(int prev, CLK_T* wait) {
+static int
+_next_task(int prev, CLK_T* wait)
+{
     CLK_T current_time = CLK_CLOCK();
     CLK_T earliest_until = CLK_ZERO;
     int nexited = 0;
@@ -49,9 +53,11 @@ static int _next_task(int prev, CLK_T* wait) {
     }
 }
 
-void _sched(void) {
-    // Now the weird bit; from this SYS_context_get onwards this code is entered _every time_
-    // a yield occurs. NB: interrupts are always disabled at this point.
+void _sched(void)
+{
+    // Now the weird bit; from this SYS_context_get onwards this code is entered
+    // _every time_ a yield occurs. NB: interrupts are always disabled at this
+    // point.
 done_idle:
     SYS_context_get(&g_yieldcontext);
 

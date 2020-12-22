@@ -1,9 +1,9 @@
 #ifndef __INCLUDED_RTOS_H
 #define __INCLUDED_RTOS_H
 
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <stdbool.h>
 
 struct task_def {
     void (*execute)(void*);
