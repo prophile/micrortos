@@ -15,13 +15,13 @@ _next_task(int prev, CLK_T* wait, int* exit_code)
 {
     CLK_T current_time = CLK_CLOCK();
     CLK_T earliest_until = CLK_ZERO;
-    int nexited = 0;
+    bool any_blocked = false;
     int first_considered = _next_after(prev);
     int candidate = first_considered;
     do {
         struct task_status* status = &(g_statuses[candidate]);
         if (status->exited) {
-            ++nexited;
+            // Do nothing here
         } else if (CLK_NONZERO(status->run_after)) {
             if (!CLK_NONZERO(earliest_until) || CLK_AFTER(earliest_until, status->run_after)) {
                 earliest_until = status->run_after;
@@ -35,16 +35,21 @@ _next_task(int prev, CLK_T* wait, int* exit_code)
             // No "run after": live task, run it if not blocked on a futex
             if (!(status->futex)) {
                 return status;
+            } else {
+                // Task is truly blocked
+                any_blocked = true;
             }
         }
 
         candidate = _next_after(candidate);
     } while (candidate != first_considered);
 
-    if (nexited == g_ntasks) {
-        *exit_code = K_EXITALL;
-    } else if (!CLK_NONZERO(earliest_until)) {
-        *exit_code = K_DEADLOCK;
+    if (UNLIKELY(!CLK_NONZERO(earliest_until))) {
+        if (any_blocked) {
+            *exit_code = K_DEADLOCK;
+        } else {
+            *exit_code = K_EXITALL;
+        }
     } else {
         CLK_T difference = earliest_until;
         CLK_SUB(difference, current_time);
