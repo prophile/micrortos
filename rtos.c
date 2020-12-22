@@ -26,6 +26,21 @@ struct task_status* _gettask(void)
     return g_kernel.running;
 }
 
+static void init_task(struct task_status* status, const struct task_def* definition)
+{
+    SYS_context_init(&(status->ctx),
+        &exectask,
+        (void*)status,
+        definition->stack,
+        definition->stacksize);
+    status->futex = NULL;
+    status->run_after = CLK_ZERO;
+    status->exited = false;
+    status->definition = definition;
+    status->cleanback = NULL;
+    status->cleanback_ptr = NULL;
+}
+
 int K_exec(const struct task_def* tasks)
 {
     int ntasks = 0;
@@ -40,17 +55,7 @@ int K_exec(const struct task_def* tasks)
     struct task_status statuses[ntasks];
     for (int n = 0; n < ntasks; ++n) {
         struct task_status* status = &(statuses[n]);
-        SYS_context_init(&(status->ctx),
-            &exectask,
-            (void*)status,
-            tasks[n].stack,
-            tasks[n].stacksize);
-        status->futex = NULL;
-        status->run_after = CLK_ZERO;
-        status->exited = false;
-        status->definition = &(tasks[n]);
-        status->cleanback = NULL;
-        status->cleanback_ptr = NULL;
+        init_task(status, &(tasks[n]));
     }
 
     for (int n = 0; n < ntasks - 1; ++n) {
