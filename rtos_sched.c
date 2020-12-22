@@ -1,22 +1,14 @@
 #include "rtos_impl.h"
 
+#include <stdio.h>
+
 struct consideration {
     CLK_T current_time;
     CLK_T earliest_until;
-    bool any_blocked;
 };
 
 static bool _is_runnable(struct task_status* status, struct consideration* consider)
 {
-    if (status->exited) {
-        // Opportunistically run cleanbacks here
-        if (status->cleanback) {
-            status->cleanback(status->cleanback_ptr);
-            status->cleanback = NULL;
-        }
-        return false;
-    }
-
     if (CLK_NONZERO(status->run_after)) {
         if (!CLK_NONZERO(consider->earliest_until) || CLK_AFTER(consider->earliest_until, status->run_after)) {
             consider->earliest_until = status->run_after;
@@ -30,12 +22,27 @@ static bool _is_runnable(struct task_status* status, struct consideration* consi
         // No "run after": live task, run it if not blocked on a futex
         if (!(status->futex)) {
             return true;
-        } else {
-            // Task is truly blocked
-            consider->any_blocked = true;
         }
     }
 
+    return false;
+}
+
+static bool _cleanup_exited_successors(struct task_status* status)
+{
+    while (status->next->exited) {
+        // Note carefully here: the cleanback can and will delete the task status block
+        if (status->next == status) {
+            // Last task exited
+            return true;
+        }
+        struct task_status* old_successor = status->next;
+        struct task_status* new_successor = old_successor->next;
+        if (old_successor->cleanback) {
+            old_successor->cleanback(old_successor->cleanback_ptr);
+        }
+        status->next = new_successor;
+    }
     return false;
 }
 
@@ -43,7 +50,6 @@ static struct task_status*
 _next_task(struct task_status* prev, CLK_T* wait, int* exit_code)
 {
     struct consideration consider = {
-        .any_blocked = false,
         .earliest_until = CLK_ZERO,
         .current_time = CLK_CLOCK()
     };
@@ -52,6 +58,12 @@ _next_task(struct task_status* prev, CLK_T* wait, int* exit_code)
 
     struct task_status* candidate = first_considered;
     do {
+        if (_cleanup_exited_successors(candidate)) {
+            // This signals that all processes have exited
+            *exit_code = K_EXITALL;
+            return NULL;
+        }
+
         if (_is_runnable(candidate, &consider)) {
             return candidate;
         }
@@ -60,11 +72,7 @@ _next_task(struct task_status* prev, CLK_T* wait, int* exit_code)
     } while (candidate != first_considered);
 
     if (UNLIKELY(!CLK_NONZERO(consider.earliest_until))) {
-        if (consider.any_blocked) {
-            *exit_code = K_DEADLOCK;
-        } else {
-            *exit_code = K_EXITALL;
-        }
+        *exit_code = K_DEADLOCK;
     } else {
         CLK_T difference = consider.earliest_until;
         CLK_SUB(difference, consider.current_time);
