@@ -71,11 +71,11 @@ done_idle:
         SYS_intr_disable();
         goto done_idle;
     } else if (UNLIKELY(next < 0)) {
-        SYS_context_set(&g_exitcontext);
+        SYS_context_set(&g_exitcontext, NULL);
         __builtin_unreachable();
     } else {
         g_statuses[next].run_after = CLK_ZERO;
-        SYS_context_set(&(g_statuses[next].ctx));
+        SYS_context_set(&(g_statuses[next].ctx), NULL);
         __builtin_unreachable();
     }
 }

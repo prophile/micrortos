@@ -10,6 +10,6 @@ void _yield(void)
         return;
     }
     has_swapped = true;
-    SYS_context_set(&g_yieldcontext);
+    SYS_context_set(&g_yieldcontext, NULL);
     __builtin_unreachable();
 }

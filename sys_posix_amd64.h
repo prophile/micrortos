@@ -14,10 +14,10 @@ typedef volatile struct _SYS_context_x86_64 {
     uint64_t r15;
 } SYS_context_t;
 
-extern void
+extern void*
 SYS_context_get(SYS_context_t*);
 extern void
-SYS_context_set(SYS_context_t*) __attribute__((noreturn));
+SYS_context_set(SYS_context_t*, void* argument) __attribute__((noreturn));
 extern void
 _SYS_context_bootstrap();
 
