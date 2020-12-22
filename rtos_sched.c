@@ -62,9 +62,14 @@ done_idle:
     SYS_context_get(&g_yieldcontext);
 
     CLK_T wait;
-    int running = g_running;
-    int next = _next_task(running, &wait);
-    g_running = next;
+    struct task_status* running = g_running;
+    int running_tid;
+    if (running) {
+        running_tid = running->tid;
+    } else {
+        running_tid = TASK_IDLE;
+    }
+    int next = _next_task(running_tid, &wait);
     if (UNLIKELY(next == TASK_IDLE)) {
         SYS_intr_enable();
         CLK_IDLE(wait);
@@ -74,8 +79,10 @@ done_idle:
         SYS_context_set(&g_exitcontext, (void*)(ptrdiff_t)next);
         __builtin_unreachable();
     } else {
-        g_statuses[next].run_after = CLK_ZERO;
-        SYS_context_set(&(g_statuses[next].ctx), NULL);
+        struct task_status* next_status = &(g_statuses[next]);
+        g_running = next_status;
+        next_status->run_after = CLK_ZERO;
+        SYS_context_set(&(next_status->ctx), NULL);
         __builtin_unreachable();
     }
 }

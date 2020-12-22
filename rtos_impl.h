@@ -23,7 +23,7 @@ static const int TASK_IDLE = -1;
 
 extern SYS_context_t g_exitcontext;
 extern SYS_context_t g_yieldcontext;
-extern volatile int g_running;
+extern struct task_status * volatile g_running;
 
 void _yield(void);
 void _sched(void) __attribute__((noreturn));

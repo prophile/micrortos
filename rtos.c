@@ -11,7 +11,7 @@ struct task_status* g_statuses;
 
 SYS_context_t g_exitcontext;
 SYS_context_t g_yieldcontext;
-volatile int g_running;
+struct task_status * volatile g_running;
 
 static void
 exectask(void* arg)
@@ -28,7 +28,7 @@ exectask(void* arg)
 
 struct task_status* _gettask(void)
 {
-    return &(g_statuses[g_running]);
+    return g_running;
 }
 
 int K_exec(const struct task_def* tasks)
@@ -58,7 +58,7 @@ int K_exec(const struct task_def* tasks)
         status->definition = &(tasks[n]);
     }
 
-    g_running = TASK_IDLE;
+    g_running = NULL;
     void* status = SYS_context_get(&g_exitcontext);
     if (status == NULL) {
         _sched();
