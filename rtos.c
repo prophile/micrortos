@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <stddef.h>
 
-#include "sys_darwin_amd64.h"
+#include "sys_auto.h"
 
 extern const struct task_def task_definitions[];
 
