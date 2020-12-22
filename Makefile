@@ -1,6 +1,6 @@
 CC=clang
-CFLAGS=-Os -fno-unwind-tables -fno-stack-protector -fomit-frame-pointer -fno-rtti -fno-exceptions -Wall -Werror -flto
-LDFLAGS=-Os -Wall -Werror -flto
+CFLAGS=-gfull -Os -fno-unwind-tables -fno-stack-protector -fomit-frame-pointer -fno-rtti -fno-exceptions -Wall -Werror -flto
+LDFLAGS=-gfull -Os -Wall -Werror -flto
 SOURCES=main.c lock.c rtos.c rtos_yield.c rtos_sched.c syscalls_data.c syscalls_exit.c syscalls_futex.c syscalls_sleep.c sys_auto.c
 
 all: rtos

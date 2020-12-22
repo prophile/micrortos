@@ -37,15 +37,16 @@ int K_exec(const struct task_def* tasks)
     struct task_status statuses_array[ntasks];
     g_statuses = statuses_array;
     for (int n = 0; n < ntasks; ++n) {
-        SYS_context_init(&(statuses_array[n].ctx),
+        struct task_status* status = &(statuses_array[n]);
+        SYS_context_init(&(status->ctx),
             &exectask,
-            (void*)(ptrdiff_t)n,
+            (void*)status,
             tasks[n].stack,
             tasks[n].stacksize);
-        statuses_array[n].futex = NULL;
-        statuses_array[n].run_after = CLK_ZERO;
-        statuses_array[n].exited = false;
-        statuses_array[n].definition = &(tasks[n]);
+        status->futex = NULL;
+        status->run_after = CLK_ZERO;
+        status->exited = false;
+        status->definition = &(tasks[n]);
     }
 
     g_running = TASK_IDLE;
