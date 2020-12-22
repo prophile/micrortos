@@ -10,6 +10,7 @@ struct task_status {
     CLK_T run_after;
     bool exited;
     const struct task_def* definition;
+    struct task_status* next;
     SYS_context_t ctx;
 };
 

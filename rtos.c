@@ -58,6 +58,11 @@ int K_exec(const struct task_def* tasks)
         status->definition = &(tasks[n]);
     }
 
+    for (int n = 0; n < ntasks - 1; ++n) {
+        statuses_array[n].next = &(statuses_array[n + 1]);
+    }
+    statuses_array[ntasks - 1].next = &(statuses_array[0]);
+
     g_running = NULL;
     void* status = SYS_context_get(&g_exitcontext);
     if (status == NULL) {
