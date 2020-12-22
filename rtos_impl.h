@@ -8,8 +8,8 @@ struct task_status {
     volatile int* futex;
     CLK_T run_after;
     bool exited;
-    SYS_context_t ctx;
     const struct task_def* definition;
+    SYS_context_t ctx;
 };
 
 #define LIKELY(x) __builtin_expect((x), true)
