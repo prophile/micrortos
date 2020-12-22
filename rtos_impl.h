@@ -27,7 +27,7 @@ struct kernel {
 extern struct kernel g_kernel;
 
 void _yield(void);
-int _sched(struct task_status* first_task);
+int _sched(struct kernel* kernel, struct task_status* first_task);
 struct task_status* _gettask(void);
 
 #define ITEROTHERS(var, than_task) for (struct task_status* var = (than_task)->next; var != (than_task); var = var->next)

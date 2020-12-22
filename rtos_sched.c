@@ -69,7 +69,7 @@ _next_task(struct task_status* prev, CLK_T* wait, int* exit_code)
     return NULL;
 }
 
-int _sched(struct task_status* first_task)
+int _sched(struct kernel* kernel, struct task_status* first_task)
 {
     // Now the weird bit; from this SYS_context_get onwards this code is entered
     // _every time_ a yield occurs. NB: interrupts are always disabled at this
@@ -78,9 +78,9 @@ int _sched(struct task_status* first_task)
     struct task_status* next;
     CLK_T wait;
     int exit_code;
-    g_kernel.running = NULL;
+    kernel->running = NULL;
 done_idle:
-    running = (struct task_status*)SYS_context_get(&g_kernel.yieldcontext);
+    running = (struct task_status*)SYS_context_get(&kernel->yieldcontext);
 
     if (running) {
         next = _next_task(running, &wait, &exit_code);
@@ -97,7 +97,7 @@ done_idle:
         SYS_intr_disable();
         goto done_idle;
     } else {
-        g_kernel.running = next;
+        kernel->running = next;
         next->run_after = CLK_ZERO;
         SYS_context_set(&(next->ctx), NULL);
         __builtin_unreachable();

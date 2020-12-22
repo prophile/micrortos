@@ -57,7 +57,7 @@ int K_exec(const struct task_def* tasks)
     }
     statuses[ntasks - 1].next = &(statuses[0]);
 
-    int status = _sched(&(statuses[0]));
+    int status = _sched(&g_kernel, &(statuses[0]));
 
     SYS_intr_enable();
 
