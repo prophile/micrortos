@@ -53,8 +53,6 @@ _next_task(int prev, CLK_T* wait)
     }
 }
 
-
-
 void _sched(void)
 {
     // Now the weird bit; from this SYS_context_get onwards this code is entered

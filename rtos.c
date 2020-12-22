@@ -11,7 +11,7 @@ struct task_status* g_statuses;
 
 SYS_context_t g_exitcontext;
 SYS_context_t g_yieldcontext;
-struct task_status * volatile g_running;
+struct task_status* volatile g_running;
 
 static void
 exectask(void* arg)
