@@ -66,7 +66,7 @@ int K_exec(const struct task_def* tasks)
     g_running = NULL;
     void* status = SYS_context_get(&g_exitcontext);
     if (status == NULL) {
-        _sched();
+        _sched(&(statuses_array[0]));
     }
 
     SYS_intr_enable();

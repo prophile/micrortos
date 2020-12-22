@@ -43,12 +43,7 @@ _next_task(struct task_status* prev, CLK_T* wait, int* exit_code)
         .current_time = CLK_CLOCK()
     };
 
-    if (prev == NULL) {
-        // We consider as if the very last task just ran
-        prev = &(g_statuses[g_ntasks - 1]);
-    }
-
-    struct task_status* first_considered = _next_after(prev->tid);
+    struct task_status* first_considered = prev->next;
 
     struct task_status* candidate = first_considered;
     do {
@@ -74,7 +69,7 @@ _next_task(struct task_status* prev, CLK_T* wait, int* exit_code)
     return NULL;
 }
 
-void _sched(void)
+void _sched(struct task_status* first_task)
 {
     // Now the weird bit; from this SYS_context_get onwards this code is entered
     // _every time_ a yield occurs. NB: interrupts are always disabled at this
@@ -86,7 +81,11 @@ void _sched(void)
 done_idle:
     running = (struct task_status*)SYS_context_get(&g_yieldcontext);
 
-    next = _next_task(running, &wait, &exit_code);
+    if (running) {
+        next = _next_task(running, &wait, &exit_code);
+    } else {
+        next = first_task;
+    }
     if (UNLIKELY(next == NULL)) {
         if (UNLIKELY(exit_code)) {
             SYS_context_set(&g_exitcontext, (void*)(ptrdiff_t)exit_code);
