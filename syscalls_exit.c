@@ -13,7 +13,8 @@ void K_exitall(void)
     SYS_intr_disable();
     struct task_status* status = _gettask();
     status->exited = true;
-    ITEROTHERS(task, status) {
+    ITEROTHERS(task, status)
+    {
         task->exited = true;
     }
     _yield();

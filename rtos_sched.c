@@ -11,7 +11,7 @@ _next_after(int prev)
 }
 
 static int
-_next_task(int prev, CLK_T* wait)
+_next_task(int prev, CLK_T* wait, int* exit_code)
 {
     CLK_T current_time = CLK_CLOCK();
     CLK_T earliest_until = CLK_ZERO;
@@ -42,15 +42,16 @@ _next_task(int prev, CLK_T* wait)
     } while (candidate != first_considered);
 
     if (nexited == g_ntasks) {
-        return K_EXITALL;
+        *exit_code = K_EXITALL;
     } else if (!CLK_NONZERO(earliest_until)) {
-        return K_DEADLOCK;
+        *exit_code = K_DEADLOCK;
     } else {
         CLK_T difference = earliest_until;
         CLK_SUB(difference, current_time);
+        *exit_code = 0;
         *wait = difference;
-        return TASK_IDLE;
     }
+    return TASK_IDLE;
 }
 
 void _sched(void)
@@ -60,7 +61,7 @@ void _sched(void)
     // point.
     struct task_status* running;
     CLK_T wait;
-    int running_tid, next;
+    int running_tid, next, exit_code;
 done_idle:
     running = (struct task_status*)SYS_context_get(&g_yieldcontext);
 
@@ -69,15 +70,16 @@ done_idle:
     } else {
         running_tid = TASK_IDLE;
     }
-    next = _next_task(running_tid, &wait);
+    next = _next_task(running_tid, &wait, &exit_code);
     if (UNLIKELY(next == TASK_IDLE)) {
+        if (UNLIKELY(exit_code)) {
+            SYS_context_set(&g_exitcontext, (void*)(ptrdiff_t)exit_code);
+            __builtin_unreachable();
+        }
         SYS_intr_enable();
         CLK_IDLE(wait);
         SYS_intr_disable();
         goto done_idle;
-    } else if (UNLIKELY(next < 0)) {
-        SYS_context_set(&g_exitcontext, (void*)(ptrdiff_t)next);
-        __builtin_unreachable();
     } else {
         struct task_status* next_status = &(g_statuses[next]);
         g_running = next_status;
