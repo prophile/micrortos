@@ -5,6 +5,7 @@
 #include "sys_auto.h"
 
 struct task_status {
+    int tid;
     volatile int* futex;
     CLK_T run_after;
     bool exited;

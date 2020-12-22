@@ -46,6 +46,7 @@ int K_exec(const struct task_def* tasks)
             (void*)status,
             tasks[n].stack,
             tasks[n].stacksize);
+        status->tid = n;
         status->futex = NULL;
         status->run_after = CLK_ZERO;
         status->exited = false;
