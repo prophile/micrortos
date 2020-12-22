@@ -1,10 +1,10 @@
 #include "rtos_impl.h"
 
-void _yield(void)
+void yield(void)
 {
     // Call with interrupts disabled, and do a swapcontext
     volatile ptrdiff_t has_swapped = 0;
-    struct task_status* status = _gettask();
+    struct task_status* status = gettask();
     SYS_context_get(&(status->ctx));
     if (has_swapped) {
         return;

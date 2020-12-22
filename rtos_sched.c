@@ -7,7 +7,7 @@ struct consideration {
     CLK_T earliest_until;
 };
 
-static bool _is_runnable(struct task_status* status, struct consideration* consider)
+static bool is_runnable(struct task_status* status, struct consideration* consider)
 {
     if (CLK_NONZERO(status->run_after)) {
         if (!CLK_NONZERO(consider->earliest_until) || CLK_AFTER(consider->earliest_until, status->run_after)) {
@@ -28,7 +28,7 @@ static bool _is_runnable(struct task_status* status, struct consideration* consi
     return false;
 }
 
-static bool _cleanup_exited_successors(struct task_status* status)
+static bool cleanup_exited_successors(struct task_status* status)
 {
     while (status->next->exited) {
         // Note carefully here: the cleanback can and will delete the task status block
@@ -47,7 +47,7 @@ static bool _cleanup_exited_successors(struct task_status* status)
 }
 
 static struct task_status*
-_next_task(struct task_status* prev, CLK_T* wait, int* exit_code)
+next_task(struct task_status* prev, CLK_T* wait, int* exit_code)
 {
     struct consideration consider = {
         .earliest_until = CLK_ZERO,
@@ -58,13 +58,13 @@ _next_task(struct task_status* prev, CLK_T* wait, int* exit_code)
 
     struct task_status* candidate = first_considered;
     do {
-        if (_cleanup_exited_successors(candidate)) {
+        if (cleanup_exited_successors(candidate)) {
             // This signals that all processes have exited
             *exit_code = K_EXITALL;
             return NULL;
         }
 
-        if (_is_runnable(candidate, &consider)) {
+        if (is_runnable(candidate, &consider)) {
             return candidate;
         }
 
@@ -82,7 +82,7 @@ _next_task(struct task_status* prev, CLK_T* wait, int* exit_code)
     return NULL;
 }
 
-int _sched(struct kernel* kernel, struct task_status* first_task)
+int sched(struct kernel* kernel, struct task_status* first_task)
 {
     // Now the weird bit; from this SYS_context_get onwards this code is entered
     // _every time_ a yield occurs. NB: interrupts are always disabled at this
@@ -96,7 +96,7 @@ done_idle:
     running = (struct task_status*)SYS_context_get(&kernel->yieldcontext);
 
     if (running) {
-        next = _next_task(running, &wait, &exit_code);
+        next = next_task(running, &wait, &exit_code);
     } else {
         next = first_task;
     }

@@ -17,11 +17,11 @@ exectask(void* arg)
     def->execute(def->argument);
     status->exited = true;
     SYS_intr_disable();
-    _yield();
+    yield();
     __builtin_unreachable();
 }
 
-struct task_status* _gettask(void)
+struct task_status* gettask(void)
 {
     return g_kernel.running;
 }
@@ -63,7 +63,7 @@ int K_exec(const struct task_def* tasks)
     }
     statuses[ntasks - 1].next = &(statuses[0]);
 
-    int status = _sched(&g_kernel, &(statuses[0]));
+    int status = sched(&g_kernel, &(statuses[0]));
 
     SYS_intr_enable();
 
