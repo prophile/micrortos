@@ -13,7 +13,7 @@ static inline void SYS_intr_disable(void)
 {
 }
 
-static struct timespec ctime_clock(void) {
+static inline struct timespec ctime_clock(void) {
     struct timespec ts;
     clock_gettime(CLOCK_MONOTONIC, &ts);
     return ts;
