@@ -78,6 +78,7 @@ int _sched(struct task_status* first_task)
     struct task_status* next;
     CLK_T wait;
     int exit_code;
+    g_kernel.running = NULL;
 done_idle:
     running = (struct task_status*)SYS_context_get(&g_kernel.yieldcontext);
 
