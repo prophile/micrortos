@@ -10,6 +10,33 @@ _next_after(int prev)
     }
 }
 
+static bool _is_runnable(struct task_status* status, bool* any_blocked, CLK_T current_time, CLK_T* earliest_until) {
+    if (status->exited) {
+        return false;
+    }
+
+    if (CLK_NONZERO(status->run_after)) {
+        if (!CLK_NONZERO(*earliest_until) || CLK_AFTER(*earliest_until, status->run_after)) {
+            *earliest_until = status->run_after;
+        }
+
+        if (CLK_AFTER(current_time, status->run_after)) {
+            // Run after says to run this immediately
+            return true;
+        }
+    } else {
+        // No "run after": live task, run it if not blocked on a futex
+        if (!(status->futex)) {
+            return true;
+        } else {
+            // Task is truly blocked
+            *any_blocked = true;
+        }
+    }
+
+    return false;
+}
+
 static struct task_status*
 _next_task(struct task_status* prev, CLK_T* wait, int* exit_code)
 {
@@ -25,25 +52,9 @@ _next_task(struct task_status* prev, CLK_T* wait, int* exit_code)
     int candidate = first_considered;
     do {
         struct task_status* status = &(g_statuses[candidate]);
-        if (status->exited) {
-            // Do nothing here
-        } else if (CLK_NONZERO(status->run_after)) {
-            if (!CLK_NONZERO(earliest_until) || CLK_AFTER(earliest_until, status->run_after)) {
-                earliest_until = status->run_after;
-            }
 
-            if (CLK_AFTER(current_time, status->run_after)) {
-                // Run after says to run this immediately
-                return status;
-            }
-        } else {
-            // No "run after": live task, run it if not blocked on a futex
-            if (!(status->futex)) {
-                return status;
-            } else {
-                // Task is truly blocked
-                any_blocked = true;
-            }
+        if (_is_runnable(status, &any_blocked, current_time, &earliest_until)) {
+            return status;
         }
 
         candidate = _next_after(candidate);
