@@ -26,7 +26,7 @@ static void exectask(void* arg) {
     __builtin_unreachable();
 }
 
-static int _entry(void) {
+int K_exec(void) {
     SYS_intr_disable();
     int ntasks = 0;
     for (int n = 0; task_definitions[n].execute; ++n) {
@@ -57,8 +57,4 @@ static int _entry(void) {
 
     SYS_intr_enable();
     return status;
-}
-
-int K_exec(void) {
-    return _entry();
 }
