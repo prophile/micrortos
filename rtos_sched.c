@@ -10,17 +10,23 @@ _next_after(int prev)
     }
 }
 
-static bool _is_runnable(struct task_status* status, bool* any_blocked, CLK_T current_time, CLK_T* earliest_until) {
+struct consideration {
+    CLK_T current_time;
+    CLK_T earliest_until;
+    bool any_blocked;
+};
+
+static bool _is_runnable(struct task_status* status, struct consideration* consider) {
     if (status->exited) {
         return false;
     }
 
     if (CLK_NONZERO(status->run_after)) {
-        if (!CLK_NONZERO(*earliest_until) || CLK_AFTER(*earliest_until, status->run_after)) {
-            *earliest_until = status->run_after;
+        if (!CLK_NONZERO(consider->earliest_until) || CLK_AFTER(consider->earliest_until, status->run_after)) {
+            consider->earliest_until = status->run_after;
         }
 
-        if (CLK_AFTER(current_time, status->run_after)) {
+        if (CLK_AFTER(consider->current_time, status->run_after)) {
             // Run after says to run this immediately
             return true;
         }
@@ -30,7 +36,7 @@ static bool _is_runnable(struct task_status* status, bool* any_blocked, CLK_T cu
             return true;
         } else {
             // Task is truly blocked
-            *any_blocked = true;
+            consider->any_blocked = true;
         }
     }
 
@@ -40,9 +46,12 @@ static bool _is_runnable(struct task_status* status, bool* any_blocked, CLK_T cu
 static struct task_status*
 _next_task(struct task_status* prev, CLK_T* wait, int* exit_code)
 {
-    CLK_T current_time = CLK_CLOCK();
-    CLK_T earliest_until = CLK_ZERO;
-    bool any_blocked = false;
+    struct consideration consider = {
+        .any_blocked = false,
+        .earliest_until = CLK_ZERO,
+        .current_time = CLK_CLOCK()
+    };
+
     int first_considered;
     if (prev != NULL) {
         first_considered = _next_after(prev->tid);
@@ -53,22 +62,22 @@ _next_task(struct task_status* prev, CLK_T* wait, int* exit_code)
     do {
         struct task_status* status = &(g_statuses[candidate]);
 
-        if (_is_runnable(status, &any_blocked, current_time, &earliest_until)) {
+        if (_is_runnable(status, &consider)) {
             return status;
         }
 
         candidate = _next_after(candidate);
     } while (candidate != first_considered);
 
-    if (UNLIKELY(!CLK_NONZERO(earliest_until))) {
-        if (any_blocked) {
+    if (UNLIKELY(!CLK_NONZERO(consider.earliest_until))) {
+        if (consider.any_blocked) {
             *exit_code = K_DEADLOCK;
         } else {
             *exit_code = K_EXITALL;
         }
     } else {
-        CLK_T difference = earliest_until;
-        CLK_SUB(difference, current_time);
+        CLK_T difference = consider.earliest_until;
+        CLK_SUB(difference, consider.current_time);
         *exit_code = 0;
         *wait = difference;
     }
