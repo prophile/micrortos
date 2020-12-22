@@ -1,3 +1,4 @@
 *.o
 rtos
 Dependencies.mk
+librtos.dylib
