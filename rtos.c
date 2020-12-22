@@ -59,12 +59,11 @@ int K_exec(const struct task_def* tasks)
     }
 
     g_running = TASK_IDLE;
-    SYS_context_get(&g_exitcontext);
-    int status = g_running;
-    if (status == TASK_IDLE) {
+    void* status = SYS_context_get(&g_exitcontext);
+    if (status == NULL) {
         _sched();
     }
 
     SYS_intr_enable();
-    return status;
+    return (int)(ptrdiff_t)status;
 }

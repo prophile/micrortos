@@ -71,7 +71,7 @@ done_idle:
         SYS_intr_disable();
         goto done_idle;
     } else if (UNLIKELY(next < 0)) {
-        SYS_context_set(&g_exitcontext, NULL);
+        SYS_context_set(&g_exitcontext, (void*)(ptrdiff_t)next);
         __builtin_unreachable();
     } else {
         g_statuses[next].run_after = CLK_ZERO;
