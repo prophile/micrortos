@@ -9,6 +9,11 @@ struct consideration {
 static bool _is_runnable(struct task_status* status, struct consideration* consider)
 {
     if (status->exited) {
+        // Opportunistically run cleanbacks here
+        if (status->cleanback) {
+            status->cleanback(status->cleanback_ptr);
+            status->cleanback = NULL;
+        }
         return false;
     }
 

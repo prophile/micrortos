@@ -50,6 +50,8 @@ int K_exec(const struct task_def* tasks)
         status->run_after = CLK_ZERO;
         status->exited = false;
         status->definition = &(tasks[n]);
+        status->cleanback = NULL;
+        status->cleanback_ptr = NULL;
     }
 
     for (int n = 0; n < ntasks - 1; ++n) {

@@ -12,6 +12,8 @@ struct task_status {
     const struct task_def* definition;
     struct task_status* next;
     SYS_context_t ctx;
+    cleanup_callback_t cleanback;
+    void* cleanback_ptr;
 };
 
 #define LIKELY(x) __builtin_expect((x), true)

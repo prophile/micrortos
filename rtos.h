@@ -7,12 +7,15 @@
 
 #define PUBLIC __attribute__((visibility("default")))
 
+
 struct task_def {
     void (*execute)(void*);
     void* argument;
     void* stack;
     size_t stacksize;
 };
+
+typedef void (*cleanup_callback_t)(const struct task_def*);
 
 typedef uint32_t milliseconds_t;
 
