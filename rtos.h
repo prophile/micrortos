@@ -7,7 +7,6 @@
 
 #define PUBLIC __attribute__((visibility("default")))
 
-
 struct task_def {
     void (*execute)(void*);
     void* argument;
@@ -23,7 +22,6 @@ bool K_wait(volatile int* address, int value) PUBLIC;
 bool K_wait_timeout(volatile int* address, int value, milliseconds_t timeout) PUBLIC;
 void K_wake_one(volatile int* address) PUBLIC;
 void K_wake_all(volatile int* address) PUBLIC;
-int K_gettid(void) PUBLIC;
 void K_yield(void) PUBLIC;
 void K_exit(void) PUBLIC;
 void K_exitall(void) PUBLIC;
