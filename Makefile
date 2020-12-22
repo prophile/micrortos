@@ -6,15 +6,15 @@ SOURCES=main.c lock.c rtos.c rtos_yield.c rtos_sched.c syscalls_data.c syscalls_
 all: rtos
 
 Dependencies.mk: $(SOURCES)
-	$(CC) -MM $^ > $@
+	"$(CC)" -MM $^ > $@
 
 include Dependencies.mk
 
 rtos: $(SOURCES:.c=.o)
-	$(CC) $(LDFLAGS) -o $@ $^
+	"$(CC)" $(LDFLAGS) -o $@ $^
 
 %.o: %.c
-	$(CC) $(CFLAGS) -c -o $@ $<
+	"$(CC)" $(CFLAGS) -c -o $@ $<
 
 clean:
 	rm -f rtos *.o Dependencies.mk
