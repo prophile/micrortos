@@ -6,8 +6,6 @@
 
 #include "rtos_impl.h"
 
-struct task_status* g_statuses;
-
 SYS_context_t g_yieldcontext;
 struct task_status* volatile g_running;
 
@@ -39,10 +37,9 @@ int K_exec(const struct task_def* tasks)
         return K_EXITALL;
     }
     SYS_intr_disable();
-    struct task_status statuses_array[ntasks];
-    g_statuses = statuses_array;
+    struct task_status statuses[ntasks];
     for (int n = 0; n < ntasks; ++n) {
-        struct task_status* status = &(statuses_array[n]);
+        struct task_status* status = &(statuses[n]);
         SYS_context_init(&(status->ctx),
             &exectask,
             (void*)status,
@@ -56,12 +53,12 @@ int K_exec(const struct task_def* tasks)
     }
 
     for (int n = 0; n < ntasks - 1; ++n) {
-        statuses_array[n].next = &(statuses_array[n + 1]);
+        statuses[n].next = &(statuses[n + 1]);
     }
-    statuses_array[ntasks - 1].next = &(statuses_array[0]);
+    statuses[ntasks - 1].next = &(statuses[0]);
 
     g_running = NULL;
-    int status = _sched(&(statuses_array[0]));
+    int status = _sched(&(statuses[0]));
 
     SYS_intr_enable();
 

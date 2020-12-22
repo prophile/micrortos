@@ -17,8 +17,6 @@ struct task_status {
 #define LIKELY(x) __builtin_expect((x), true)
 #define UNLIKELY(x) __builtin_expect((x), false)
 
-extern struct task_status* g_statuses;
-
 static const int TASK_IDLE = -1;
 
 extern SYS_context_t g_yieldcontext;
