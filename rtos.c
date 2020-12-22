@@ -36,6 +36,7 @@ int K_exec(const struct task_def* tasks)
         return K_EXITALL;
     }
     SYS_intr_disable();
+    // Build the tasks
     struct task_status statuses[ntasks];
     for (int n = 0; n < ntasks; ++n) {
         struct task_status* status = &(statuses[n]);
