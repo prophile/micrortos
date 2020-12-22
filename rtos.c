@@ -28,11 +28,14 @@ exectask(void* arg)
 
 int K_exec(const struct task_def* tasks)
 {
-    SYS_intr_disable();
     int ntasks = 0;
     for (int n = 0; tasks[n].execute; ++n) {
         ++ntasks;
     }
+    if (ntasks == 0) {
+        return K_EXITALL;
+    }
+    SYS_intr_disable();
     g_ntasks = ntasks;
     struct task_status statuses_array[ntasks];
     g_statuses = statuses_array;
