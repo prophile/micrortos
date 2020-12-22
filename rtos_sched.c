@@ -1,15 +1,5 @@
 #include "rtos_impl.h"
 
-static int
-_next_after(int prev)
-{
-    if (prev == g_ntasks - 1 || prev < 0) {
-        return 0;
-    } else {
-        return prev + 1;
-    }
-}
-
 struct consideration {
     CLK_T current_time;
     CLK_T earliest_until;
@@ -58,17 +48,15 @@ _next_task(struct task_status* prev, CLK_T* wait, int* exit_code)
         prev = &(g_statuses[g_ntasks - 1]);
     }
 
-    int first_considered = _next_after(prev->tid);
+    struct task_status* first_considered = _next_after(prev->tid);
 
-    int candidate = first_considered;
+    struct task_status* candidate = first_considered;
     do {
-        struct task_status* status = &(g_statuses[candidate]);
-
-        if (_is_runnable(status, &consider)) {
-            return status;
+        if (_is_runnable(candidate, &consider)) {
+            return candidate;
         }
 
-        candidate = _next_after(candidate);
+        candidate = candidate->next;
     } while (candidate != first_considered);
 
     if (UNLIKELY(!CLK_NONZERO(consider.earliest_until))) {
