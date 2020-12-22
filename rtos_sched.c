@@ -16,7 +16,8 @@ struct consideration {
     bool any_blocked;
 };
 
-static bool _is_runnable(struct task_status* status, struct consideration* consider) {
+static bool _is_runnable(struct task_status* status, struct consideration* consider)
+{
     if (status->exited) {
         return false;
     }
@@ -52,12 +53,13 @@ _next_task(struct task_status* prev, CLK_T* wait, int* exit_code)
         .current_time = CLK_CLOCK()
     };
 
-    int first_considered;
-    if (prev != NULL) {
-        first_considered = _next_after(prev->tid);
-    } else {
-        first_considered = 0;
+    if (prev == NULL) {
+        // We consider as if the very last task just ran
+        prev = &(g_statuses[g_ntasks - 1]);
     }
+
+    int first_considered = _next_after(prev->tid);
+
     int candidate = first_considered;
     do {
         struct task_status* status = &(g_statuses[candidate]);
