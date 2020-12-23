@@ -7,6 +7,10 @@
 
 #define PUBLIC __attribute__((visibility("default")))
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct kernel* kernel_t;
 
 struct task_def {
@@ -46,5 +50,9 @@ int kernel_exec(
 static const int K_EXITALL = -2;
 static const int K_DEADLOCK = -3;
 static const int K_UNKNOWN = -4;
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
