@@ -1,5 +1,7 @@
 #include "rtos_impl.h"
 
+void yield(kernel_t kernel) __attribute__((always_inline));
+
 void yield(kernel_t kernel)
 {
     // Call with interrupts disabled, and do a swapcontext

@@ -17,6 +17,48 @@ void SYS_context_init(SYS_context_t* ctx,
     ctx->r15 = 0;
 }
 
+/*
+-        "_SYS_context_set:\n"
+-        "    movq (%rdi), %rdx\n"
+-        "    movq 8(%rdi), %rbx\n"
+-        "    movq 16(%rdi), %rsp\n"
+-        "    movq 24(%rdi), %rbp\n"
+-        "    movq 32(%rdi), %r12\n"
+-        "    movq 40(%rdi), %r13\n"
+-        "    movq 48(%rdi), %r14\n"
+-        "    movq 56(%rdi), %r15\n"
+-        "    movq %rsi, %rax\n"
+-        "    jmp *%rdx\n"
+*/
+
+void SYS_context_set(SYS_context_t* ctx, void* argument) __attribute__((always_inline));
+
+void SYS_context_set(SYS_context_t* ctx, void* argument)
+{
+    register SYS_context_t* rbx __asm__ ("rbx");
+    register void* rax __asm__ ("rax");
+
+    rbx = ctx;
+    rax = argument;
+
+    __asm__ volatile(
+        "    movq (%%rbx), %%rdx\n"
+        "    movq 16(%%rbx), %%rsp\n"
+        "    movq 24(%%rbx), %%rbp\n"
+        "    movq 32(%%rbx), %%r12\n"
+        "    movq 40(%%rbx), %%r13\n"
+        "    movq 48(%%rbx), %%r14\n"
+        "    movq 56(%%rbx), %%r15\n"
+        "    movq 8(%%rbx), %%rbx\n"
+        "    jmpq *%%rdx"
+        : /* No outputs */
+        : "b" (rbx),
+          "a" (rax)
+        : "memory"
+    );
+    __builtin_unreachable();
+}
+
 __asm__("_SYS_context_get:\n"
         "    movq (%rsp), %rax\n"
         "    movq %rax, (%rdi)\n"
@@ -31,18 +73,6 @@ __asm__("_SYS_context_get:\n"
         "    movq %r15, 56(%rdi)\n"
         "    xorq %rax, %rax\n"
         "    ret\n"
-        "\n"
-        "_SYS_context_set:\n"
-        "    movq (%rdi), %rdx\n"
-        "    movq 8(%rdi), %rbx\n"
-        "    movq 16(%rdi), %rsp\n"
-        "    movq 24(%rdi), %rbp\n"
-        "    movq 32(%rdi), %r12\n"
-        "    movq 40(%rdi), %r13\n"
-        "    movq 48(%rdi), %r14\n"
-        "    movq 56(%rdi), %r15\n"
-        "    movq %rsi, %rax\n"
-        "    jmp *%rdx\n"
         "\n"
         "__SYS_context_bootstrap:\n"
         "    movq %rbx, %rax\n"

@@ -68,8 +68,8 @@ int sched(struct kernel* kernel, struct task_status* first_task)
     struct task_status* running;
     struct task_status* next;
     struct task_status* witness;
-    uint64_t wait;
-    int exit_code;
+    uint64_t wait = 0;
+    int exit_code = 0;
     witness = first_task;
     kernel->running = NULL;
     running = (struct task_status*)SYS_context_get(&kernel->yieldcontext);

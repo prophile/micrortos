@@ -1,6 +1,6 @@
 CC=clang
-CFLAGS=-gfull -Os -fno-unwind-tables -fno-stack-protector -fomit-frame-pointer -fno-rtti -fno-exceptions -Wall -Werror -flto
-LDFLAGS=-gfull -Os -Wall -Werror -flto
+CFLAGS=-O3 -fno-unwind-tables -fomit-frame-pointer -fno-stack-protector -fno-rtti -fno-exceptions -Wall -Werror -flto
+LDFLAGS=-O3 -Wall -Werror -flto
 SOURCES_LIB=\
 	rtos_yield.c \
 	rtos_sched.c \
