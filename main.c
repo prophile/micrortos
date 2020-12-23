@@ -7,10 +7,9 @@
 
 static lock_t the_lock = LOCK_INIT;
 static lock_t the_other_lock = LOCK_INIT;
-static kernel_t kernel;
 
 static void
-task_0(void* arg)
+task_0(kernel_t kernel, void* arg)
 {
     (void)arg;
     lock_lock(kernel, &the_lock);
@@ -22,7 +21,7 @@ task_0(void* arg)
 }
 
 static void
-task_1(void* arg)
+task_1(kernel_t kernel, void* arg)
 {
     (void)arg;
     lock_lock(kernel, &the_other_lock);
@@ -34,7 +33,7 @@ task_1(void* arg)
 }
 
 static void
-subtask(void* arg)
+subtask(kernel_t kernel, void* arg)
 {
     (void)arg;
     puts("Subtask!");
@@ -42,8 +41,13 @@ subtask(void* arg)
     puts("Done with subtask");
 }
 
+static void freestack(kernel_t kernel, void* ptr)
+{
+    free(ptr);
+}
+
 static void
-task_2(void* arg)
+task_2(kernel_t kernel, void* arg)
 {
     for (int i = 0; i < 10; ++i) {
         printf("Task 2: %d\n", i);
@@ -56,7 +60,7 @@ task_2(void* arg)
                 .stack = stack,
                 .stacksize = 8192
             };
-            K_spawn(kernel, &definition, free, stack);
+            K_spawn(kernel, &definition, freestack, stack);
         }
     }
 }
@@ -80,8 +84,9 @@ static const struct task_def task_definitions[] = {
         .stacksize = sizeof(stack3) }
 };
 
-static void root_task()
+static void root_task(kernel_t kernel, void* arg)
 {
+    (void)arg;
     K_spawn(kernel, &task_definitions[0], NULL, NULL);
     K_spawn(kernel, &task_definitions[1], NULL, NULL);
     K_spawn(kernel, &task_definitions[2], NULL, NULL);
@@ -98,7 +103,7 @@ int main()
         .stack = root_stack,
         .stacksize = sizeof(root_stack)
     };
-    kernel = kernel_create(&root);
+    kernel_t kernel = kernel_create(&root);
     int status = kernel_exec(kernel);
     printf("Done, status = %d\n", status);
     return 0;

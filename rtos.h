@@ -7,18 +7,18 @@
 
 #define PUBLIC __attribute__((visibility("default")))
 
+typedef struct kernel* kernel_t;
+
 struct task_def {
-    void (*execute)(void*);
+    void (*execute)(kernel_t, void*);
     void* argument;
     void* stack;
     size_t stacksize;
 };
 
-typedef void (*cleanup_callback_t)(void*);
+typedef void (*cleanup_callback_t)(kernel_t, void*);
 
 typedef uint32_t milliseconds_t;
-
-typedef struct kernel* kernel_t;
 
 bool K_wait(kernel_t kernel, volatile int* address, int value) PUBLIC;
 bool K_wait_timeout(kernel_t kernel, volatile int* address, int value, milliseconds_t timeout) PUBLIC;

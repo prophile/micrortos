@@ -13,7 +13,7 @@ exectask(void* knl, void* arg)
     struct task_status* status = (struct task_status*)arg;
     kernel_t kernel = (kernel_t)knl;
     const struct task_def* def = status->definition;
-    def->execute(def->argument);
+    def->execute(kernel, def->argument);
     status->definition = NULL;
     SYS_intr_disable();
     yield(kernel);

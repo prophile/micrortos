@@ -99,7 +99,7 @@ redo_idle:
         }
         // Call the cleanback; note that this may well destroy the task status object
         if (running->cleanback) {
-            running->cleanback(running->cleanback_ptr);
+            running->cleanback(kernel, running->cleanback_ptr);
         }
         running = NULL;
 
