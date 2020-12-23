@@ -15,7 +15,7 @@ exectask(void* arg)
     struct task_status* status = (struct task_status*)arg;
     const struct task_def* def = status->definition;
     def->execute(def->argument);
-    status->exited = true;
+    status->definition = NULL;
     SYS_intr_disable();
     yield();
     __builtin_unreachable();
@@ -35,36 +35,22 @@ void init_task(struct task_status* status, const struct task_def* definition)
         definition->stacksize);
     status->futex = NULL;
     status->run_after = CLK_ZERO;
-    status->exited = false;
     status->definition = definition;
     status->cleanback = NULL;
     status->cleanback_ptr = NULL;
 }
 
-int K_exec(const struct task_def* tasks)
+int K_exec(const struct task_def* task)
 {
-    int ntasks = 0;
-    for (int n = 0; tasks[n].execute; ++n) {
-        ++ntasks;
-    }
-    if (ntasks == 0) {
-        return K_EXITALL;
-    }
     SYS_intr_disable();
-    // Build the tasks
-    struct task_status statuses[ntasks];
-    for (int n = 0; n < ntasks; ++n) {
-        struct task_status* status = &(statuses[n]);
-        init_task(status, &(tasks[n]));
-    }
+    // Build the root task
+    struct task_status root;
+    init_task(&root, task);
 
-    for (int n = 0; n < ntasks - 1; ++n) {
-        statuses[n].next = &(statuses[n + 1]);
-    }
-    statuses[ntasks - 1].next = &(statuses[0]);
+    root.next = &root; // Make it a closed chain
+    root.prev = &root;
 
-    int status = sched(&g_kernel, &(statuses[0]));
-
+    int status = sched(&g_kernel, &root);
     SYS_intr_enable();
 
     return status;

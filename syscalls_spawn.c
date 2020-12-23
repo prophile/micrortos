@@ -20,6 +20,7 @@ void K_spawn(const struct task_def* definition, cleanup_callback_t cleanback, vo
     tcb->status.cleanback_ptr = ud;
 
     tcb->status.next = our_status->next;
+    tcb->status.prev = our_status;
     our_status->next = &(tcb->status);
 
     yield();

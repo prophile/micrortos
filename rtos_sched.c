@@ -9,6 +9,11 @@ struct consideration {
 
 static bool is_runnable(struct task_status* status, struct consideration* consider)
 {
+    if (!status->definition) {
+        // Exited
+        return false;
+    }
+
     if (CLK_NONZERO(status->run_after)) {
         if (!CLK_NONZERO(consider->earliest_until) || CLK_AFTER(consider->earliest_until, status->run_after)) {
             consider->earliest_until = status->run_after;
@@ -28,24 +33,6 @@ static bool is_runnable(struct task_status* status, struct consideration* consid
     return false;
 }
 
-static bool cleanup_exited_successors(struct task_status* status)
-{
-    while (status->next->exited) {
-        // Note carefully here: the cleanback can and will delete the task status block
-        if (status->next == status) {
-            // Last task exited
-            return true;
-        }
-        struct task_status* old_successor = status->next;
-        struct task_status* new_successor = old_successor->next;
-        if (old_successor->cleanback) {
-            old_successor->cleanback(old_successor->cleanback_ptr);
-        }
-        status->next = new_successor;
-    }
-    return false;
-}
-
 static struct task_status*
 next_task(struct task_status* prev, CLK_T* wait, int* exit_code)
 {
@@ -58,12 +45,6 @@ next_task(struct task_status* prev, CLK_T* wait, int* exit_code)
 
     struct task_status* candidate = first_considered;
     do {
-        if (cleanup_exited_successors(candidate)) {
-            // This signals that all processes have exited
-            *exit_code = K_EXITALL;
-            return NULL;
-        }
-
         if (is_runnable(candidate, &consider)) {
             return candidate;
         }
@@ -89,16 +70,42 @@ int sched(struct kernel* kernel, struct task_status* first_task)
     // point.
     struct task_status* running;
     struct task_status* next;
+    struct task_status* witness;
     CLK_T wait;
     int exit_code;
+    witness = first_task;
     kernel->running = NULL;
-done_idle:
     running = (struct task_status*)SYS_context_get(&kernel->yieldcontext);
 
+redo_idle:
     if (running) {
         next = next_task(running, &wait, &exit_code);
     } else {
         next = first_task;
+    }
+
+    // Handle the exit condition
+    if (running && !running->definition) {
+        // Drop it from the linked list
+        running->prev->next = running->next;
+        running->next->prev = running->prev;
+        bool was_last_task = false;
+        if (running == witness) {
+            if (running->next == witness) {
+                was_last_task = true;
+            } else {
+                witness = running->next;
+            }
+        }
+        // Call the cleanback; note that this may well destroy the task status object
+        if (running->cleanback) {
+            running->cleanback(running->cleanback_ptr);
+        }
+        running = NULL;
+
+        if (UNLIKELY(was_last_task)) {
+            return K_EXITALL;
+        }
     }
 
     if (UNLIKELY(next == NULL)) {
@@ -108,7 +115,8 @@ done_idle:
         SYS_intr_enable();
         CLK_IDLE(wait);
         SYS_intr_disable();
-        goto done_idle;
+        running = witness;
+        goto redo_idle;
     } else {
         kernel->running = next;
         next->run_after = CLK_ZERO;

@@ -7,8 +7,8 @@
 struct task_status {
     volatile int* futex;
     CLK_T run_after;
-    bool exited;
-    const struct task_def* definition;
+    const struct task_def* definition; // Setting the definition to 0 signals exit
+    struct task_status* prev;
     struct task_status* next;
     SYS_context_t ctx;
     cleanup_callback_t cleanback;

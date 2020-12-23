@@ -28,7 +28,7 @@ void K_exitall(void) PUBLIC;
 void K_sleep(milliseconds_t interval) PUBLIC;
 void K_spawn(const struct task_def* definition, cleanup_callback_t cleanback, void* ud) PUBLIC;
 
-int K_exec(const struct task_def* tasks) PUBLIC;
+int K_exec(const struct task_def* task) PUBLIC;
 
 static const int K_EXITALL = -2;
 static const int K_DEADLOCK = -3;
