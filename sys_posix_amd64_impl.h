@@ -1,8 +1,9 @@
 #include "sys_posix_amd64.h"
 
 void SYS_context_init(SYS_context_t* ctx,
-    void (*callable)(void*),
-    void* arg,
+    void (*callable)(void*, void*),
+    void* arg1,
+    void* arg2,
     void* stack,
     size_t stacksize)
 {
@@ -10,8 +11,8 @@ void SYS_context_init(SYS_context_t* ctx,
     ctx->rbx = (uint64_t)callable;
     ctx->rsp = (uint64_t)((uint8_t*)stack + stacksize);
     ctx->rbp = (uint64_t)((uint8_t*)stack + stacksize);
-    ctx->r12 = (uint64_t)arg;
-    ctx->r13 = 0;
+    ctx->r12 = (uint64_t)arg1;
+    ctx->r13 = (uint64_t)arg2;
     ctx->r14 = 0;
     ctx->r15 = 0;
 }
@@ -46,5 +47,6 @@ __asm__("_SYS_context_get:\n"
         "__SYS_context_bootstrap:\n"
         "    movq %rbx, %rax\n"
         "    movq %r12, %rdi\n"
+        "    movq %r13, %rsi\n"
         "    callq *%rax\n"
         "    ud2\n");

@@ -1,7 +1,7 @@
 #include "rtos_impl.h"
 
 static int
-wait(volatile int* address, int value, CLK_T timeout)
+wait(kernel_t kernel, volatile int* address, int value, CLK_T timeout)
 {
     int ret = 0;
     CLK_T base;
@@ -14,13 +14,13 @@ wait(volatile int* address, int value, CLK_T timeout)
     if (loaded != value) {
         ret = -1;
     } else {
-        struct task_status* status = gettask();
+        struct task_status* status = gettask(kernel);
         status->futex = address;
         if (CLK_NONZERO(timeout)) {
             CLK_ADD(base, timeout);
             status->run_after = base;
         }
-        yield();
+        yield(kernel);
         if (status->futex == NULL) {
             ret = 0;
         } else {
@@ -32,21 +32,21 @@ wait(volatile int* address, int value, CLK_T timeout)
     return ret;
 }
 
-bool K_wait(volatile int* address, int value)
+bool K_wait(kernel_t kernel, volatile int* address, int value)
 {
-    return wait(address, value, CLK_ZERO) > 0;
+    return wait(kernel, address, value, CLK_ZERO) > 0;
 }
 
-bool K_wait_timeout(volatile int* address, int value, milliseconds_t timeout)
+bool K_wait_timeout(kernel_t kernel, volatile int* address, int value, milliseconds_t timeout)
 {
-    return wait(address, value, CLK_FROMMS(timeout)) != 0;
+    return wait(kernel, address, value, CLK_FROMMS(timeout)) != 0;
 }
 
-void K_wake_one(volatile int* address)
+void K_wake_one(kernel_t kernel, volatile int* address)
 {
     SYS_intr_disable();
     bool did_wake = false;
-    ITEROTHERS(task, gettask())
+    ITEROTHERS(task, gettask(kernel))
     {
         if (task->futex == address) {
             task->futex = NULL;
@@ -56,15 +56,15 @@ void K_wake_one(volatile int* address)
         }
     }
     if (did_wake)
-        yield();
+        yield(kernel);
     SYS_intr_enable();
 }
 
-void K_wake_all(volatile int* address)
+void K_wake_all(kernel_t kernel, volatile int* address)
 {
     SYS_intr_disable();
     bool did_wake = false;
-    ITEROTHERS(task, gettask())
+    ITEROTHERS(task, gettask(kernel))
     {
         if (task->futex == address) {
             task->futex = NULL;
@@ -73,6 +73,6 @@ void K_wake_all(volatile int* address)
         }
     }
     if (did_wake)
-        yield();
+        yield(kernel);
     SYS_intr_enable();
 }

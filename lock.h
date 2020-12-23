@@ -10,8 +10,8 @@ typedef _Atomic int lock_t;
 
 #define LOCK_INIT 0
 
-void lock_lock(lock_t* lock);
-bool lock_trylock(lock_t* lock);
-void lock_unlock(lock_t* lock);
+void lock_lock(kernel_t kernel, lock_t* lock);
+bool lock_trylock(kernel_t kernel, lock_t* lock);
+void lock_unlock(kernel_t kernel, lock_t* lock);
 
 #endif

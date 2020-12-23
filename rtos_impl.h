@@ -23,12 +23,17 @@ struct kernel {
     struct task_status* volatile running;
 };
 
-extern struct kernel g_kernel;
-
-void yield(void);
+void yield(kernel_t);
 int sched(struct kernel* kernel, struct task_status* first_task);
-struct task_status* gettask(void);
-void init_task(struct task_status* status, const struct task_def* definition);
+static inline struct task_status* gettask(kernel_t kernel)
+{
+    return kernel->running;
+}
+void init_task(
+    kernel_t kernel,
+    struct task_status* status,
+    const struct task_def* definition,
+    size_t stackused);
 
 #define ITEROTHERS(var, than_task) for (struct task_status* var = (than_task)->next; var != (than_task); var = var->next)
 

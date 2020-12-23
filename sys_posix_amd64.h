@@ -22,8 +22,9 @@ extern void
 _SYS_context_bootstrap();
 
 void SYS_context_init(SYS_context_t* ctx,
-    void (*callable)(void*),
-    void* arg,
+    void (*callable)(void*, void*),
+    void* arg1,
+    void* arg2,
     void* stack,
     size_t stacksize);
 

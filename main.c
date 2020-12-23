@@ -7,29 +7,30 @@
 
 static lock_t the_lock = LOCK_INIT;
 static lock_t the_other_lock = LOCK_INIT;
+static kernel_t kernel;
 
 static void
 task_0(void* arg)
 {
     (void)arg;
-    lock_lock(&the_lock);
-    K_sleep(200);
-    lock_lock(&the_other_lock);
-    K_sleep(200);
-    lock_unlock(&the_other_lock);
-    lock_unlock(&the_lock);
+    lock_lock(kernel, &the_lock);
+    K_sleep(kernel, 200);
+    lock_lock(kernel, &the_other_lock);
+    K_sleep(kernel, 200);
+    lock_unlock(kernel, &the_other_lock);
+    lock_unlock(kernel, &the_lock);
 }
 
 static void
 task_1(void* arg)
 {
     (void)arg;
-    lock_lock(&the_other_lock);
-    K_sleep(200);
-    lock_lock(&the_lock);
-    K_sleep(200);
-    lock_unlock(&the_lock);
-    lock_unlock(&the_other_lock);
+    lock_lock(kernel, &the_other_lock);
+    K_sleep(kernel, 200);
+    lock_lock(kernel, &the_lock);
+    K_sleep(kernel, 200);
+    lock_unlock(kernel, &the_lock);
+    lock_unlock(kernel, &the_other_lock);
 }
 
 static void
@@ -37,7 +38,7 @@ subtask(void* arg)
 {
     (void)arg;
     puts("Subtask!");
-    K_sleep(1000);
+    K_sleep(kernel, 1000);
     puts("Done with subtask");
 }
 
@@ -46,7 +47,7 @@ task_2(void* arg)
 {
     for (int i = 0; i < 10; ++i) {
         printf("Task 2: %d\n", i);
-        K_sleep(250);
+        K_sleep(kernel, 250);
         if (i == 3) {
             void* stack = malloc(8192);
             struct task_def definition = {
@@ -55,7 +56,7 @@ task_2(void* arg)
                 .stack = stack,
                 .stacksize = 8192
             };
-            K_spawn(&definition, free, stack);
+            K_spawn(kernel, &definition, free, stack);
         }
     }
 }
@@ -81,9 +82,9 @@ static const struct task_def task_definitions[] = {
 
 static void root_task()
 {
-    K_spawn(&task_definitions[0], NULL, NULL);
-    K_spawn(&task_definitions[1], NULL, NULL);
-    K_spawn(&task_definitions[2], NULL, NULL);
+    K_spawn(kernel, &task_definitions[0], NULL, NULL);
+    K_spawn(kernel, &task_definitions[1], NULL, NULL);
+    K_spawn(kernel, &task_definitions[2], NULL, NULL);
 }
 
 char root_stack[4096];
@@ -97,7 +98,8 @@ int main()
         .stack = root_stack,
         .stacksize = sizeof(root_stack)
     };
-    int status = K_exec(&root);
+    kernel = kernel_create(&root);
+    int status = kernel_exec(kernel);
     printf("Done, status = %d\n", status);
     return 0;
 }
