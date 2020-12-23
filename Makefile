@@ -7,6 +7,7 @@ SOURCES_LIB=\
 	syscalls_exit.c \
 	syscalls_futex.c \
 	syscalls_sleep.c \
+	syscalls_spawn.c \
 	sys_auto.c \
 	rtos.c
 SOURCES_EXAMPLE=main.c lock.c

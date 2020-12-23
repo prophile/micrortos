@@ -14,7 +14,7 @@ struct task_def {
     size_t stacksize;
 };
 
-typedef void (*cleanup_callback_t)(const struct task_def*);
+typedef void (*cleanup_callback_t)(void*);
 
 typedef uint32_t milliseconds_t;
 
@@ -26,6 +26,7 @@ void K_yield(void) PUBLIC;
 void K_exit(void) PUBLIC;
 void K_exitall(void) PUBLIC;
 void K_sleep(milliseconds_t interval) PUBLIC;
+void K_spawn(const struct task_def* definition, cleanup_callback_t cleanback, void* ud) PUBLIC;
 
 int K_exec(const struct task_def* tasks) PUBLIC;
 
