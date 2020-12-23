@@ -1,5 +1,6 @@
 #include <stdatomic.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "lock.h"
 #include "rtos.h"
@@ -32,11 +33,30 @@ task_1(void* arg)
 }
 
 static void
+subtask(void* arg)
+{
+    (void)arg;
+    puts("Subtask!");
+    K_sleep(1000);
+    puts("Done with subtask");
+}
+
+static void
 task_2(void* arg)
 {
     for (int i = 0; i < 10; ++i) {
         printf("Task 2: %d\n", i);
         K_sleep(250);
+        if (i == 3) {
+            void* stack = malloc(8192);
+            struct task_def definition = {
+                .execute = &subtask,
+                .argument = NULL,
+                .stack = stack,
+                .stacksize = 8192
+            };
+            K_spawn(&definition, free, stack);
+        }
     }
 }
 
