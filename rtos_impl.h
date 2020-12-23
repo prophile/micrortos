@@ -7,9 +7,9 @@
 struct task_status {
     volatile int* futex;
     const struct task_def* definition; // Setting the definition to 0 signals exit
-    uint64_t run_after;
     struct task_status* prev;
     struct task_status* next;
+    uint64_t run_after;
     SYS_context_t ctx;
     cleanup_callback_t cleanback;
     void* cleanback_ptr;
