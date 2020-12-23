@@ -1,7 +1,5 @@
 #include "rtos_impl.h"
 
-#include <stdio.h>
-
 struct consideration {
     CLK_T current_time;
     CLK_T earliest_until;
