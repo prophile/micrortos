@@ -10,7 +10,7 @@ SOURCES_LIB=\
 	syscalls_spawn.c \
 	sys_auto.c \
 	rtos.c
-SOURCES_EXAMPLE=main.c lock.c
+SOURCES_EXAMPLE=main.c lock.c posix_timebase.c
 DYLIB=librtos.dylib
 
 all: rtos

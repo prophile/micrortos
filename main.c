@@ -1,9 +1,9 @@
 #include <stdatomic.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
 
 #include "lock.h"
+#include "posix_timebase.h"
 #include "rtos.h"
 
 static lock_t the_lock = LOCK_INIT;
@@ -47,6 +47,19 @@ static void freestack(kernel_t kernel, void* ptr)
     free(ptr);
 }
 
+static void spawn(kernel_t kernel, void (*callback)(kernel_t, void*), void* arg)
+{
+    const int STACK_SIZE = 8192;
+    void* stack = malloc(STACK_SIZE);
+    struct task_def def = {
+        .execute = callback,
+        .argument = arg,
+        .stack = stack,
+        .stacksize = STACK_SIZE
+    };
+    K_spawn(kernel, &def, freestack, stack);
+}
+
 static void
 task_2(kernel_t kernel, void* arg)
 {
@@ -54,79 +67,19 @@ task_2(kernel_t kernel, void* arg)
         printf("Task 2: %d\n", i);
         K_sleep(kernel, 250);
         if (i == 3) {
-            void* stack = malloc(8192);
-            struct task_def definition = {
-                .execute = &subtask,
-                .argument = NULL,
-                .stack = stack,
-                .stacksize = 8192
-            };
-            K_spawn(kernel, &definition, freestack, stack);
+            spawn(kernel, &subtask, NULL);
         }
     }
 }
 
-static char stack1[8192];
-static char stack2[8192];
-static char stack3[8192];
-
-static const struct task_def task_definitions[] = {
-    { .execute = &task_0,
-        .argument = NULL,
-        .stack = stack1,
-        .stacksize = sizeof(stack1) },
-    { .execute = &task_1,
-        .argument = NULL,
-        .stack = stack2,
-        .stacksize = sizeof(stack2) },
-    { .execute = &task_2,
-        .argument = NULL,
-        .stack = stack3,
-        .stacksize = sizeof(stack3) }
-};
-
 static void root_task(kernel_t kernel, void* arg)
 {
-    (void)arg;
-    K_spawn(kernel, &task_definitions[0], NULL, NULL);
-    K_spawn(kernel, &task_definitions[1], NULL, NULL);
-    K_spawn(kernel, &task_definitions[2], NULL, NULL);
+    spawn(kernel, task_0, NULL);
+    spawn(kernel, task_1, NULL);
+    spawn(kernel, task_2, NULL);
 }
 
 char root_stack[4096];
-
-static uint64_t tb_get_time(void* ud)
-{
-    (void)ud;
-    struct timespec ts;
-    clock_gettime(CLOCK_MONOTONIC, &ts);
-    uint64_t units = 0;
-    units += ts.tv_nsec;
-    units += ts.tv_sec * 1000000000;
-    return units;
-}
-
-static uint64_t tb_from_ms(milliseconds_t ms, void* ud)
-{
-    (void)ud;
-    return (uint64_t)ms * 1000000;
-}
-
-static void tb_delay(uint64_t pause, void* ud)
-{
-    (void)ud;
-    struct timespec ts;
-    ts.tv_nsec = (pause % 1000000000);
-    ts.tv_sec = (pause / 1000000000);
-    nanosleep(&ts, NULL);
-}
-
-static const struct kernel_timebase timebase = {
-    .ud = NULL,
-    .get_time = &tb_get_time,
-    .from_ms = &tb_from_ms,
-    .delay = &tb_delay
-};
 
 int main()
 {
@@ -137,7 +90,7 @@ int main()
         .stack = root_stack,
         .stacksize = sizeof(root_stack)
     };
-    int status = kernel_exec(&root, &timebase);
+    int status = kernel_exec(&root, &TIMEBASE_POSIX);
     printf("Done, status = %d\n", status);
     return 0;
 }
