@@ -30,16 +30,18 @@ void init_task(kernel_t kernel, struct task_status* status, const struct task_de
         (void*)((const uint8_t*)definition->stack + stackused),
         definition->stacksize - stackused);
     status->futex = NULL;
-    status->run_after = CLK_ZERO;
+    status->run_after = 0;
     status->definition = definition;
     status->cleanback = NULL;
     status->cleanback_ptr = NULL;
 }
 
-int kernel_exec(const struct task_def* task)
+int kernel_exec(const struct task_def* task, const struct kernel_timebase* timebase)
 {
     struct kernel kernel;
     struct task_status init;
+
+    kernel.timebase = timebase;
 
     init_task(&kernel, &init, task, 0);
     init.next = &init;

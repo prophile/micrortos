@@ -1,8 +1,8 @@
 #include "rtos_impl.h"
 
 struct consideration {
-    CLK_T current_time;
-    CLK_T earliest_until;
+    uint64_t current_time;
+    uint64_t earliest_until;
 };
 
 static bool is_runnable(struct task_status* status, struct consideration* consider)
@@ -12,12 +12,12 @@ static bool is_runnable(struct task_status* status, struct consideration* consid
         return false;
     }
 
-    if (CLK_NONZERO(status->run_after)) {
-        if (!CLK_NONZERO(consider->earliest_until) || CLK_AFTER(consider->earliest_until, status->run_after)) {
+    if (status->run_after) {
+        if (!consider->earliest_until || consider->earliest_until > status->run_after) {
             consider->earliest_until = status->run_after;
         }
 
-        if (CLK_AFTER(consider->current_time, status->run_after)) {
+        if (consider->current_time > status->run_after) {
             // Run after says to run this immediately
             return true;
         }
@@ -32,11 +32,11 @@ static bool is_runnable(struct task_status* status, struct consideration* consid
 }
 
 static struct task_status*
-next_task(struct task_status* prev, CLK_T* wait, int* exit_code)
+next_task(struct task_status* prev, uint64_t time, uint64_t* wait, int* exit_code)
 {
     struct consideration consider = {
-        .earliest_until = CLK_ZERO,
-        .current_time = CLK_CLOCK()
+        .earliest_until = 0,
+        .current_time = time
     };
 
     struct task_status* first_considered = prev->next;
@@ -50,11 +50,10 @@ next_task(struct task_status* prev, CLK_T* wait, int* exit_code)
         candidate = candidate->next;
     } while (candidate != first_considered);
 
-    if (UNLIKELY(!CLK_NONZERO(consider.earliest_until))) {
+    if (UNLIKELY(!consider.earliest_until)) {
         *exit_code = K_DEADLOCK;
     } else {
-        CLK_T difference = consider.earliest_until;
-        CLK_SUB(difference, consider.current_time);
+        uint64_t difference = consider.earliest_until - consider.current_time;
         *exit_code = 0;
         *wait = difference;
     }
@@ -69,7 +68,7 @@ int sched(struct kernel* kernel, struct task_status* first_task)
     struct task_status* running;
     struct task_status* next;
     struct task_status* witness;
-    CLK_T wait;
+    uint64_t wait;
     int exit_code;
     witness = first_task;
     kernel->running = NULL;
@@ -77,7 +76,7 @@ int sched(struct kernel* kernel, struct task_status* first_task)
 
 redo_idle:
     if (running) {
-        next = next_task(running, &wait, &exit_code);
+        next = next_task(running, tb_clock(kernel), &wait, &exit_code);
     } else {
         next = first_task;
     }
@@ -111,13 +110,13 @@ redo_idle:
             return exit_code;
         }
         SYS_intr_enable();
-        CLK_IDLE(wait);
+        tb_delay(kernel, wait);
         SYS_intr_disable();
         running = witness;
         goto redo_idle;
     } else {
         kernel->running = next;
-        next->run_after = CLK_ZERO;
+        next->run_after = 0;
         SYS_context_set(&(next->ctx), next);
         __builtin_unreachable();
     }

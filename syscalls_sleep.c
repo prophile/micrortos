@@ -10,9 +10,8 @@ void K_yield(kernel_t kernel)
 void K_sleep(kernel_t kernel, milliseconds_t interval)
 {
     SYS_intr_disable();
-    CLK_T base = CLK_CLOCK();
-    CLK_ADD(base, CLK_FROMMS(interval));
-    gettask(kernel)->run_after = base;
+    uint64_t deadline = tb_clock(kernel) + tb_from_ms(kernel, interval);
+    gettask(kernel)->run_after = deadline;
     yield(kernel);
     SYS_intr_enable();
 }

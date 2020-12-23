@@ -1,13 +1,13 @@
 #include "rtos_impl.h"
 
 static int
-wait(kernel_t kernel, volatile int* address, int value, CLK_T timeout)
+wait(kernel_t kernel, volatile int* address, int value, uint64_t timeout)
 {
     int ret = 0;
-    CLK_T base;
-    if (CLK_NONZERO(timeout)) {
+    uint64_t base;
+    if (timeout) {
         // Do this before disabling interrupts
-        base = CLK_CLOCK();
+        base = tb_clock(kernel);
     }
     SYS_intr_disable();
     int loaded = *address;
@@ -16,8 +16,8 @@ wait(kernel_t kernel, volatile int* address, int value, CLK_T timeout)
     } else {
         struct task_status* status = gettask(kernel);
         status->futex = address;
-        if (CLK_NONZERO(timeout)) {
-            CLK_ADD(base, timeout);
+        if (timeout) {
+            base += timeout;
             status->run_after = base;
         }
         yield(kernel);
@@ -34,12 +34,12 @@ wait(kernel_t kernel, volatile int* address, int value, CLK_T timeout)
 
 bool K_wait(kernel_t kernel, volatile int* address, int value)
 {
-    return wait(kernel, address, value, CLK_ZERO) > 0;
+    return wait(kernel, address, value, 0) > 0;
 }
 
 bool K_wait_timeout(kernel_t kernel, volatile int* address, int value, milliseconds_t timeout)
 {
-    return wait(kernel, address, value, CLK_FROMMS(timeout)) != 0;
+    return wait(kernel, address, value, tb_from_ms(kernel, timeout)) != 0;
 }
 
 void K_wake_one(kernel_t kernel, volatile int* address)
@@ -50,7 +50,7 @@ void K_wake_one(kernel_t kernel, volatile int* address)
     {
         if (task->futex == address) {
             task->futex = NULL;
-            task->run_after = CLK_ZERO;
+            task->run_after = 0;
             did_wake = true;
             break;
         }
@@ -68,7 +68,7 @@ void K_wake_all(kernel_t kernel, volatile int* address)
     {
         if (task->futex == address) {
             task->futex = NULL;
-            task->run_after = CLK_ZERO;
+            task->run_after = 0;
             did_wake = true;
         }
     }

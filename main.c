@@ -1,6 +1,7 @@
 #include <stdatomic.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 #include "lock.h"
 #include "rtos.h"
@@ -94,6 +95,39 @@ static void root_task(kernel_t kernel, void* arg)
 
 char root_stack[4096];
 
+static uint64_t tb_get_time(void* ud)
+{
+    (void)ud;
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    uint64_t units = 0;
+    units += ts.tv_nsec;
+    units += ts.tv_sec * 1000000000;
+    return units;
+}
+
+static uint64_t tb_from_ms(milliseconds_t ms, void* ud)
+{
+    (void)ud;
+    return (uint64_t)ms * 1000000;
+}
+
+static void tb_delay(uint64_t pause, void* ud)
+{
+    (void)ud;
+    struct timespec ts;
+    ts.tv_nsec = (pause % 1000000000);
+    ts.tv_sec = (pause / 1000000000);
+    nanosleep(&ts, NULL);
+}
+
+static const struct kernel_timebase timebase = {
+    .ud = NULL,
+    .get_time = &tb_get_time,
+    .from_ms = &tb_from_ms,
+    .delay = &tb_delay
+};
+
 int main()
 {
     puts("Starting");
@@ -103,7 +137,7 @@ int main()
         .stack = root_stack,
         .stacksize = sizeof(root_stack)
     };
-    int status = kernel_exec(&root);
+    int status = kernel_exec(&root, &timebase);
     printf("Done, status = %d\n", status);
     return 0;
 }

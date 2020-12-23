@@ -6,8 +6,8 @@
 
 struct task_status {
     volatile int* futex;
-    CLK_T run_after;
     const struct task_def* definition; // Setting the definition to 0 signals exit
+    uint64_t run_after;
     struct task_status* prev;
     struct task_status* next;
     SYS_context_t ctx;
@@ -21,7 +21,23 @@ struct task_status {
 struct kernel {
     SYS_context_t yieldcontext;
     struct task_status* volatile running;
+    const struct kernel_timebase* timebase;
 };
+
+static inline uint64_t tb_clock(kernel_t kernel)
+{
+    return kernel->timebase->get_time(kernel->timebase->ud);
+}
+
+static inline uint64_t tb_from_ms(kernel_t kernel, milliseconds_t ms)
+{
+    return kernel->timebase->from_ms(ms, kernel->timebase->ud);
+}
+
+static inline void tb_delay(kernel_t kernel, uint64_t pause)
+{
+    return kernel->timebase->delay(pause, kernel->timebase->ud);
+}
 
 void yield(kernel_t);
 int sched(struct kernel* kernel, struct task_status* first_task);
