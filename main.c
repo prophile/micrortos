@@ -76,14 +76,28 @@ static const struct task_def task_definitions[] = {
     { .execute = &task_2,
         .argument = NULL,
         .stack = stack3,
-        .stacksize = sizeof(stack3) },
-    { .execute = NULL, .argument = NULL, .stack = NULL, .stacksize = 0 }
+        .stacksize = sizeof(stack3) }
 };
+
+static void root_task()
+{
+    K_spawn(&task_definitions[0], NULL, NULL);
+    K_spawn(&task_definitions[1], NULL, NULL);
+    K_spawn(&task_definitions[2], NULL, NULL);
+}
+
+char root_stack[4096];
 
 int main()
 {
     puts("Starting");
-    int status = K_exec(task_definitions);
+    struct task_def root = {
+        .execute = root_task,
+        .argument = NULL,
+        .stack = root_stack,
+        .stacksize = sizeof(root_stack)
+    };
+    int status = K_exec(&root);
     printf("Done, status = %d\n", status);
     return 0;
 }
