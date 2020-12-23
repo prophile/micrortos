@@ -26,7 +26,6 @@ void K_wake_one(kernel_t kernel, volatile int* address) PUBLIC;
 void K_wake_all(kernel_t kernel, volatile int* address) PUBLIC;
 void K_yield(kernel_t kernel) PUBLIC;
 void K_exit(kernel_t kernel) PUBLIC;
-void K_exitall(kernel_t kernel) PUBLIC;
 void K_sleep(kernel_t kernel, milliseconds_t interval) PUBLIC;
 void K_spawn(
     kernel_t kernel,
