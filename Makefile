@@ -4,7 +4,6 @@ LDFLAGS=-O3 -Wall -Werror -flto
 SOURCES_LIB=\
 	rtos_yield.c \
 	rtos_sched.c \
-	syscalls_exit.c \
 	syscalls_futex.c \
 	syscalls_sleep.c \
 	syscalls_spawn.c \
