@@ -20,7 +20,7 @@ struct task_status {
 
 struct kernel {
     SYS_context_t yieldcontext;
-    struct task_status* volatile running;
+    struct task_status* running;
     const struct kernel_timebase* timebase;
 };
 
