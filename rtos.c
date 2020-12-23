@@ -26,7 +26,7 @@ struct task_status* gettask(void)
     return g_kernel.running;
 }
 
-static void init_task(struct task_status* status, const struct task_def* definition)
+void init_task(struct task_status* status, const struct task_def* definition)
 {
     SYS_context_init(&(status->ctx),
         &exectask,
