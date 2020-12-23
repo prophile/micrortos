@@ -34,8 +34,7 @@ void K_spawn(
     cleanup_callback_t cleanback,
     void* ud) PUBLIC;
 
-kernel_t kernel_create(const struct task_def* task) PUBLIC;
-int kernel_exec(kernel_t kernel) PUBLIC;
+int kernel_exec(const struct task_def* task) PUBLIC;
 
 static const int K_EXITALL = -2;
 static const int K_DEADLOCK = -3;

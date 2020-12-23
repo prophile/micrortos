@@ -36,26 +36,17 @@ void init_task(kernel_t kernel, struct task_status* status, const struct task_de
     status->cleanback_ptr = NULL;
 }
 
-struct root_block {
+int kernel_exec(const struct task_def* task)
+{
     struct kernel kernel;
     struct task_status init;
-};
 
-kernel_t kernel_create(const struct task_def* task)
-{
-    struct root_block* root = (struct root_block*)task->stack;
-    init_task(&root->kernel, &root->init, task, sizeof(struct root_block));
-    root->init.next = &root->init;
-    root->init.prev = &root->init;
-    return &root->kernel;
-}
+    init_task(&kernel, &init, task, 0);
+    init.next = &init;
+    init.prev = &init;
 
-int kernel_exec(kernel_t kernel)
-{
-    // Rely on some knowledge of structure here
-    struct root_block* root = (struct root_block*)kernel;
     SYS_intr_disable();
-    int status = sched(kernel, &root->init);
+    int status = sched(&kernel, &init);
     SYS_intr_enable();
 
     return status;

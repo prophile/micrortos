@@ -103,8 +103,7 @@ int main()
         .stack = root_stack,
         .stacksize = sizeof(root_stack)
     };
-    kernel_t kernel = kernel_create(&root);
-    int status = kernel_exec(kernel);
+    int status = kernel_exec(&root);
     printf("Done, status = %d\n", status);
     return 0;
 }
