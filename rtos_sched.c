@@ -120,7 +120,7 @@ redo_idle:
     } else {
         kernel->running = next;
         next->run_after = CLK_ZERO;
-        SYS_context_set(&(next->ctx), NULL);
+        SYS_context_set(&(next->ctx), next);
         __builtin_unreachable();
     }
 }
